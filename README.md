@@ -1,2 +1,2 @@
 # libSAN
-C++ Library for Short and Sparse ASCII encoded numbers.
+C++ library for **S**hort and Sparse **A**SCII-encoded **N**umbers.
