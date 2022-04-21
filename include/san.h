@@ -3,6 +3,10 @@
 
 #include <string>
 
+constexpr uint32_t ERROR_24_EMPTY = 0x01000000;
+constexpr uint32_t ERROR_24_HIGH_BIT = 0x02000000;
+constexpr uint32_t ERROR_24_WRONG_CHAR = 0x04000000;
+
 /**
  * Encodes a 3-byte input value into an up-to 4-byte output string.
  * The first byte is irrelevant and will be ignored.

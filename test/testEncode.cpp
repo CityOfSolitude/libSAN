@@ -115,3 +115,48 @@ TEST(testEncode, encodeDecodeAllSigned) {
         ASSERT_EQ(input, decode24Signed(encoded)) << encoded;
     }
 }
+
+TEST(testEncode, invalidEmpty) {
+    ASSERT_EQ(ERROR_24_EMPTY, decode24(""));
+}
+
+TEST(testEncode, invalidHighBit) {
+    std::string encoded;
+    for (auto i = -1; i < 63; ++i) {
+        encoded = encode24(i);
+        encoded.front() |= static_cast<char>(0x80);
+        ASSERT_EQ(ERROR_24_HIGH_BIT, decode24(encoded));
+
+        encoded = encode24Signed(i);
+        encoded.front() |= static_cast<char>(0x80);
+        ASSERT_EQ(ERROR_24_HIGH_BIT, decode24(encoded));
+    }
+}
+
+TEST(testEncode, invalidWrongChar) {
+    size_t error_high = 0;
+    size_t error_wrong = 0;
+    size_t success = 0;
+    for (int i = -128; i <= 127; ++i) {
+        uint32_t decoded = decode24({static_cast<char>(i)});
+        switch (decoded) {
+            case ERROR_24_HIGH_BIT:
+                ++error_high;
+                break;
+            case ERROR_24_WRONG_CHAR:
+                ++error_wrong;
+                break;
+            case ERROR_24_EMPTY:
+                FAIL();
+            default:
+                ++success;
+                if (decoded != 0x00ffffff) {
+                    ASSERT_LT(decoded, 63);
+                }
+                break;
+        }
+    }
+    ASSERT_EQ(success, 64);
+    ASSERT_EQ(error_high, 128);
+    ASSERT_EQ(error_wrong, 64);
+}

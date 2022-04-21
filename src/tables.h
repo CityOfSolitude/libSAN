@@ -1,8 +1,10 @@
 #ifndef SAN_TABLES_H
 #define SAN_TABLES_H
 
-constexpr const char encodeTable[65] = "+123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-";
-constexpr const char decodeTable[129] =
+constexpr uint8_t ONES = 0x3f;
+
+constexpr char encodeTable[65] = "+123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-";
+constexpr char decodeTable[129] =
         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
         "\x00" // +
         "@"

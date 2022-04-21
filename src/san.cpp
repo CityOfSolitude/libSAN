@@ -4,47 +4,44 @@
 using namespace std;
 
 string encode24Signed(int32_t input) {
-    // catch the sign
-    input <<= 8;
-    input >>= 8;
+    uint8_t b4 = input & ONES;
+    uint8_t b3 = input >> 6 & ONES;
+    uint8_t b2 = input >> 12 & ONES;
+    uint8_t b1 = input >> 18 & ONES;
 
-    // add first character, always
-    string res;
-    do {
-        res += encodeTable[input & 0x3f];
-        input >>= 6;
-        // stop if not all zeros or all ones and we did not add a block of all ones yet
-    } while (input && (input != -1 || res.length() < 4 && res[res.length() - 1] != encodeTable[0x3f]));
-
-    // if we stop with a positive number, but the highest six bits are all ones, add a leading zero
-    if (input == 0 && res[res.length() - 1] == encodeTable[0x3f]) {
-        res += encodeTable[0];
+    if (b2 != ONES ? b1 : b1 != ONES) {
+        return {encodeTable[b1], encodeTable[b2], encodeTable[b3], encodeTable[b4]};
     }
 
-    return res;
+    if (b3 != ONES ? b2 : b2 != ONES) {
+        return {encodeTable[b2], encodeTable[b3], encodeTable[b4]};
+    }
+
+    if (b4 != ONES ? b3 : b3 != ONES) {
+        return {encodeTable[b3], encodeTable[b4]};
+    }
+
+    return {encodeTable[b4]};
 }
 
 uint32_t decode24(const string &input) {
-    // empty string is not allowed
     if (input.empty()) {
-        return -1;
+        return ERROR_24_EMPTY;
     }
 
     // start with leading 1s, if the string indicates the number has six leading 1s
-    int32_t res = input.back() == encodeTable[0x3f] ? -1 : 0;
+    int32_t res = input.front() == encodeTable[ONES] ? -1 : 0;
 
-    // read string in reverse
-    for (auto i = input.length() - 1; i + 1; --i) {
+    for (char byte: input) {
         // extract character, make sure the first bit is not set
-        char byte = input[i];
         if (byte < 0) {
-            return -1;
+            return ERROR_24_HIGH_BIT;
         }
 
         // decode character into six bit value, make sure the decode-table did not reject the character
         char bits = decodeTable[byte];
         if (bits >= 64) {
-            return -1;
+            return ERROR_24_WRONG_CHAR;
         }
 
         // shift digits we already have and add the six bits
