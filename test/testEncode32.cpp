@@ -171,7 +171,7 @@ std::set<uint32_t> createPatterns32() {
     seen.insert(0);
     size_t duplicates = 0;
 
-    // produce numbers with the most significant bit is 0 to 47, i.e., numbers of all sizes
+    // produce numbers with the most significant bit is 0 to 31, i.e., numbers of all sizes
     for (int8_t msb = 0; msb <= 32; ++msb) {
         // mask to set the MSB, and to wipe everything else by subtracting 1
         uint32_t msbMask = 1 << msb;
@@ -256,43 +256,43 @@ TEST(testEncode32, patternImportant) {
 }
 
 TEST(testEncode32, encodeDecodeManyUnsigned) {
-    ERROR_32 error;
+    ERROR error;
     for (auto input: patterns) {
         std::string encoded = encode32(input);
         ASSERT_EQ(input, decode32(encoded, error)) << encoded;
-        ASSERT_EQ(ERROR_32::OK, error);
+        ASSERT_EQ(ERROR::OK, error);
     }
 }
 
 TEST(testEncode32, encodeDecodeAllSigned) {
-    ERROR_32 error;
+    ERROR error;
     for (auto uns: patterns) {
         auto input = static_cast<int32_t>(uns);
         std::string encoded = encode32Signed(input);
         ASSERT_EQ(input, decode32Signed(encoded, error)) << encoded;
-        ASSERT_EQ(ERROR_32::OK, error);
+        ASSERT_EQ(ERROR::OK, error);
     }
 }
 
 TEST(testEncode32, invalidEmpty) {
-    ERROR_32 error;
+    ERROR error;
     ASSERT_EQ(-1, decode32("", error));
-    ASSERT_EQ(ERROR_32::EMPTY, error);
+    ASSERT_EQ(ERROR::EMPTY, error);
 }
 
 TEST(testEncode32, invalidHighBit) {
     std::string encoded;
-    ERROR_32 error;
+    ERROR error;
     for (auto i = -1; i < 63; ++i) {
         encoded = encode32(i);
         encoded.front() |= static_cast<char>(0x80);
         ASSERT_EQ(-1, decode32(encoded, error));
-        ASSERT_EQ(ERROR_32::HIGH_BIT, error);
+        ASSERT_EQ(ERROR::HIGH_BIT, error);
 
         encoded = encode32Signed(i);
         encoded.front() |= static_cast<char>(0x80);
         ASSERT_EQ(-1, decode32(encoded, error));
-        ASSERT_EQ(ERROR_32::HIGH_BIT, error);
+        ASSERT_EQ(ERROR::HIGH_BIT, error);
     }
 }
 
@@ -300,17 +300,17 @@ TEST(testEncode32, invalidWrongChar) {
     size_t error_high = 0;
     size_t error_wrong = 0;
     size_t success = 0;
-    ERROR_32 error;
+    ERROR error;
     for (int i = -128; i <= 127; ++i) {
-        uint64_t decoded = decode32({static_cast<char>(i)}, error);
+        auto decoded = decode32({static_cast<char>(i)}, error);
         switch (error) {
-            case ERROR_32::HIGH_BIT:
+            case ERROR::HIGH_BIT:
                 ++error_high;
                 break;
-            case ERROR_32::WRONG_CHAR:
+            case ERROR::WRONG_CHAR:
                 ++error_wrong;
                 break;
-            case ERROR_32::EMPTY:
+            case ERROR::EMPTY:
                 FAIL();
             default:
                 ++success;

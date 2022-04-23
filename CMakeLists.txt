@@ -20,6 +20,7 @@ add_executable(unittest
         test/testEncode24.cpp
         test/testEncode32.cpp
         test/testEncode48.cpp
+        test/testEncode128.cpp
         test/testApplications.cpp
         test/main.cpp)
 

@@ -30,6 +30,51 @@ TEST(testApplications, commonIps) {
         const auto &enc = it.second;
         in_addr addr{};
         inet_aton(ip.c_str(), &addr);
-        ASSERT_EQ(enc, encode32(addr.s_addr)) << ip;
+        EXPECT_EQ(enc, encode32(addr.s_addr)) << ip;
+    }
+}
+
+std::map<uint64_t, std::string> macs{ // NOLINT(cert-err58-cpp)
+        {0x000000000000, "+"},
+        {0xffffffffffff, "-"},
+        {0xc4c4c4c4c4c4, "Ncj4Ncj4"},
+        {0x123456789012, "4zhmu9+i"},
+        {0xa1b2c3d4e5f6, "Erb3RenS"},
+        {0x123456000000, "4zhm++++"},
+        {0x000000123456, "4zhm"},
+        {0x001b44113ab7, "1J44jGT"},
+        {0x2c549188c9e3, "b5ihycDz"}
+};
+
+TEST(testApplications, someMACs) {
+    for (const auto &it: macs) {
+        const auto &mac = it.first;
+        EXPECT_LT(mac, 1ul << 48);
+        const auto &enc = it.second;
+        EXPECT_EQ(enc, encode48(mac)) << std::hex << mac;
+    }
+}
+
+std::map<std::pair<uint64_t, uint64_t>, std::string> uuids{ // NOLINT(cert-err58-cpp)
+        {{0,                  0},                  "+"},
+        {{-1,                 -1},                 "-"},
+        {{-1,                 0},                  "-M++++++++++"},
+        {{0,                  -1},                 "f----------"},
+        {{3,                  -1},                 "+-----------"},
+        {{0xC4C4C4C4C4C4C4C4, 0xC4C4C4C4C4C4C4C4}, "-4Ncj4Ncj4Ncj4Ncj4Ncj4"},
+        {{0x0123456789abcdef, 0x0123456789abcdef}, "18QlDyqLdXM4zhmu9GYTL"},
+        {{0xfedcba9876543210, 0xfedcba9876543210}, "-0TbGotBgO4fXsKFxSl38g"},
+        {{0x1234567800000000, 0x1234567800000000}, "id5pU+++++18QlDw+++++"},
+        {{0x0000000012345678, 0x0000000012345678}, "4zhmu++++++id5pU"},
+        {{0xc09db6b20b1443ba, 0xa90a554634cc44fa}, "-+DrqO2Nh3KGAalkoQP4jW"},
+        {{0xa8922d72d00e493c, 0x95475983f28e384a}, "0EAyROQ+V9f9l7mofOzzxa"},
+        {{0x9ba14f0a9c6041f6, 0x9305ab2876ce492c}, "0rEkYaD611ZFc5GOxSPAAI"}
+};
+
+TEST(testApplications, someUUIDs) {
+    for (const auto &it: uuids) {
+        const auto &uuid = it.first;
+        const auto &enc = it.second;
+        EXPECT_EQ(enc, encode128(uuid.first, uuid.second)) << std::hex << uuid.first << " " << uuid.second;
     }
 }
