@@ -30,7 +30,9 @@ TEST(testApplications, commonIps) {
         const auto &enc = it.second;
         in_addr addr{};
         inet_aton(ip.c_str(), &addr);
-        EXPECT_EQ(enc, encode32(addr.s_addr)) << ip;
+        std::string encoded = encode32(addr.s_addr);
+        EXPECT_EQ(enc, encoded) << ip;
+        EXPECT_EQ(addr.s_addr, decode32(encoded)) << ip;
     }
 }
 
@@ -51,7 +53,9 @@ TEST(testApplications, someMACs) {
         const auto &mac = it.first;
         EXPECT_LT(mac, 1ul << 48);
         const auto &enc = it.second;
-        EXPECT_EQ(enc, encode48(mac)) << std::hex << mac;
+        std::string encoded = encode48(mac);
+        EXPECT_EQ(enc, encoded) << std::hex << mac;
+        EXPECT_EQ(mac, decode48(encoded)) << std::hex << mac;
     }
 }
 
@@ -75,6 +79,8 @@ TEST(testApplications, someUUIDs) {
     for (const auto &it: uuids) {
         const auto &uuid = it.first;
         const auto &enc = it.second;
-        EXPECT_EQ(enc, encode128(uuid.first, uuid.second)) << std::hex << uuid.first << " " << uuid.second;
+        std::string encoded = encode128(uuid.first, uuid.second);
+        EXPECT_EQ(enc, encoded) << std::hex << uuid.first << " " << uuid.second;
+        EXPECT_EQ(uuid, decode128(encoded)) << std::hex << uuid.first << " " << uuid.second;
     }
 }
