@@ -90,6 +90,7 @@ TEST(testEncode48, encodeProperties) {
     std::vector<size_t> counter(5, 0);
     for (int64_t input = 0; input < (1u << 24); ++input) {
         std::string encoded = encode48(input);
+        ASSERT_EQ(ERROR::OK, valid(encoded, 48));
         auto length = encoded.length();
         // empty is not allowed and neither is larger than 4
         ASSERT_GT(length, 0);
@@ -232,49 +233,4 @@ TEST(testEncode48, encodeDecodeAllSigned) {
         std::string encoded = encode48Signed(input);
         ASSERT_EQ(input, decode48Signed(encoded)) << encoded;
     }
-}
-
-TEST(testEncode48, invalidEmpty) {
-    ASSERT_EQ(ERROR_48_EMPTY, decode48(""));
-}
-
-TEST(testEncode48, invalidHighBit) {
-    std::string encoded;
-    for (auto i = -1l; i < 63; ++i) {
-        encoded = encode48(i);
-        encoded.front() |= static_cast<char>(0x80);
-        ASSERT_EQ(ERROR_48_HIGH_BIT, decode48(encoded));
-
-        encoded = encode48Signed(i);
-        encoded.front() |= static_cast<char>(0x80);
-        ASSERT_EQ(ERROR_48_HIGH_BIT, decode48(encoded));
-    }
-}
-
-TEST(testEncode48, invalidWrongChar) {
-    size_t error_high = 0;
-    size_t error_wrong = 0;
-    size_t success = 0;
-    for (int i = -128; i <= 127; ++i) {
-        uint64_t decoded = decode48({static_cast<char>(i)});
-        switch (decoded) {
-            case ERROR_48_HIGH_BIT:
-                ++error_high;
-                break;
-            case ERROR_48_WRONG_CHAR:
-                ++error_wrong;
-                break;
-            case ERROR_48_EMPTY:
-                FAIL();
-            default:
-                ++success;
-                if (decoded != 0x0000ffffffffffff) {
-                    ASSERT_LT(decoded, 63);
-                }
-                break;
-        }
-    }
-    ASSERT_EQ(success, 64);
-    ASSERT_EQ(error_high, 128);
-    ASSERT_EQ(error_wrong, 64);
 }

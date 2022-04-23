@@ -4,17 +4,23 @@
 #include <string>
 
 enum class ERROR {
-    OK, EMPTY, HIGH_BIT, WRONG_CHAR
+    OK, EMPTY, HIGH_BIT, WRONG_CHAR, TOO_LONG
 };
 
-constexpr uint32_t ERROR_24_EMPTY = 1u << 24;
-constexpr uint32_t ERROR_24_HIGH_BIT = 1u << 25;
-constexpr uint32_t ERROR_24_WRONG_CHAR = 1u << 26;
-
-constexpr uint64_t ERROR_48_EMPTY = 1ul << 48;
-constexpr uint64_t ERROR_48_HIGH_BIT = 1ul << 49;
-constexpr uint64_t ERROR_48_WRONG_CHAR = 1ul << 50;
-
+/**
+ * Determines whether the string is a valid encoding, i.e., all characters
+ * are from the encoding table. It does NOT consider the length of the
+ * string, besides it being empty.
+ *
+ * If a bit size is given, it also tests total length of the string and
+ * whether the first character of a full string is from the valid subset
+ * of the encoding table.
+ *
+ * @param input a string that might be the result of a prior encoding
+ * @param bitSize (optional) length of the originally encoded input
+ * @return whether any errors would occur while decoding
+ */
+ERROR valid(const std::string &input, size_t bitSize = 0);
 
 /**
  * Encodes a 3-byte input value into an up-to 4-byte output string.
@@ -141,21 +147,19 @@ inline int32_t decode24Signed(const std::string &input) {
  * Decodes a previously encoded 4-byte value from its string representation.
  *
  * @param input a 1-6 byte string, which was the output of a previous encoding call
- * @param error reference parameter to return whether the operation was successful or not
  * @return the decoded 32 bit value, interpreted as unsigned value
  */
-uint32_t decode32(const std::string &input, ERROR &error);
+uint32_t decode32(const std::string &input);
 
 /**
  * Convenience method for signed values; the decoding does not differ from
  * the signed one.
  *
  * @param input a 1-6 byte string, which was the output of a previous encoding call
- * @param error reference parameter to return whether the operation was successful or not
  * @return the decoded 32 bit value
  */
-inline int32_t decode32Signed(const std::string &input, ERROR &error) {
-    return static_cast<int32_t>(decode32(input, error));
+inline int32_t decode32Signed(const std::string &input) {
+    return static_cast<int32_t>(decode32(input));
 }
 
 /**
@@ -183,20 +187,18 @@ inline int64_t decode48Signed(const std::string &input) {
  * Decodes a previously encoded 16-byte value from its string representation.
  *
  * @param input a 1-22 byte string, which was the output of a previous encoding call
- * @param error reference parameter to return whether the operation was successful or not
  * @return the decoded 128 bit value, interpreted as unsigned value
  */
-std::pair<uint64_t, uint64_t> decode128(const std::string &input, ERROR &error);
+std::pair<uint64_t, uint64_t> decode128(const std::string &input);
 
 /**
  * Convenience method for signed values; the decoding does not differ from the signed one.
  *
  * @param input a 1-22 byte string, which was the output of a previous encoding call
- * @param error reference parameter to return whether the operation was successful or not
  * @return the decoded 128 bit value, with the highest 8 bit replicating the sign
  */
-inline std::pair<int64_t, int64_t> decode128Signed(const std::string &input, ERROR &error) {
-    return static_cast<std::pair<int64_t, int64_t>>(decode128(input, error));
+inline std::pair<int64_t, int64_t> decode128Signed(const std::string &input) {
+    return static_cast<std::pair<int64_t, int64_t>>(decode128(input));
 }
 
 #endif //LIBSAN_SAN_H

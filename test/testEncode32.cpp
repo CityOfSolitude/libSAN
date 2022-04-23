@@ -129,6 +129,7 @@ TEST(testEncode32, encodeProperties) {
     std::vector<size_t> counter(5, 0);
     for (int32_t input = 0; input < (1u << 24); ++input) {
         std::string encoded = encode32(input);
+        ASSERT_EQ(ERROR::OK, valid(encoded, 32));
         auto length = encoded.length();
         // empty is not allowed and neither is larger than 4
         ASSERT_GT(length, 0);
@@ -256,71 +257,16 @@ TEST(testEncode32, patternImportant) {
 }
 
 TEST(testEncode32, encodeDecodeManyUnsigned) {
-    ERROR error;
     for (auto input: patterns) {
         std::string encoded = encode32(input);
-        ASSERT_EQ(input, decode32(encoded, error)) << encoded;
-        ASSERT_EQ(ERROR::OK, error);
+        ASSERT_EQ(input, decode32(encoded)) << encoded;
     }
 }
 
 TEST(testEncode32, encodeDecodeAllSigned) {
-    ERROR error;
     for (auto uns: patterns) {
         auto input = static_cast<int32_t>(uns);
         std::string encoded = encode32Signed(input);
-        ASSERT_EQ(input, decode32Signed(encoded, error)) << encoded;
-        ASSERT_EQ(ERROR::OK, error);
+        ASSERT_EQ(input, decode32Signed(encoded)) << encoded;
     }
-}
-
-TEST(testEncode32, invalidEmpty) {
-    ERROR error;
-    ASSERT_EQ(-1, decode32("", error));
-    ASSERT_EQ(ERROR::EMPTY, error);
-}
-
-TEST(testEncode32, invalidHighBit) {
-    std::string encoded;
-    ERROR error;
-    for (auto i = -1; i < 63; ++i) {
-        encoded = encode32(i);
-        encoded.front() |= static_cast<char>(0x80);
-        ASSERT_EQ(-1, decode32(encoded, error));
-        ASSERT_EQ(ERROR::HIGH_BIT, error);
-
-        encoded = encode32Signed(i);
-        encoded.front() |= static_cast<char>(0x80);
-        ASSERT_EQ(-1, decode32(encoded, error));
-        ASSERT_EQ(ERROR::HIGH_BIT, error);
-    }
-}
-
-TEST(testEncode32, invalidWrongChar) {
-    size_t error_high = 0;
-    size_t error_wrong = 0;
-    size_t success = 0;
-    ERROR error;
-    for (int i = -128; i <= 127; ++i) {
-        auto decoded = decode32({static_cast<char>(i)}, error);
-        switch (error) {
-            case ERROR::HIGH_BIT:
-                ++error_high;
-                break;
-            case ERROR::WRONG_CHAR:
-                ++error_wrong;
-                break;
-            case ERROR::EMPTY:
-                FAIL();
-            default:
-                ++success;
-                if (decoded != -1u) {
-                    ASSERT_LT(decoded, 63);
-                }
-                break;
-        }
-    }
-    ASSERT_EQ(success, 64);
-    ASSERT_EQ(error_high, 128);
-    ASSERT_EQ(error_wrong, 64);
 }

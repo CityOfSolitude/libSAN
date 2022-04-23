@@ -17,6 +17,7 @@ endif ()
 
 add_executable(unittest
         test/testTables.cpp
+        test/testValid.cpp
         test/testEncode24.cpp
         test/testEncode32.cpp
         test/testEncode48.cpp

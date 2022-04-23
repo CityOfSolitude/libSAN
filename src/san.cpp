@@ -4,6 +4,35 @@
 
 using namespace std;
 
+ERROR valid(const string &input, size_t bitSize) {
+    if (input.empty()) {
+        return ERROR::EMPTY;
+    }
+
+    for (char byte: input) {
+        if (byte < 0) {
+            return ERROR::HIGH_BIT;
+        }
+        if (dec[byte] >= 64) {
+            return ERROR::WRONG_CHAR;
+        }
+    }
+
+    if (bitSize) {
+        int unneededBytes = (bitSize + 5) / 6 - input.size();
+        if (unneededBytes < 0) {
+            return ERROR::TOO_LONG;
+        } else if (unneededBytes == 0) {
+            auto rest = bitSize % 6;
+            if (rest && dec[input.front()] & ~((1u << rest) - 1)) {
+                return ERROR::TOO_LONG;
+            }
+        }
+    }
+
+    return ERROR::OK;
+}
+
 #define CASE(i) if (blocks[(i) + 1] != enc[63] ? blocks[i] != enc[0] : blocks[i] != enc[63]) { return {blocks.begin() + (i), blocks.end()}; }
 
 string encode24Signed(int32_t input) {
@@ -108,125 +137,35 @@ string encode128Signed(int64_t ab, int64_t cd) {
 }
 
 uint32_t decode24(const string &input) {
-    if (input.empty()) {
-        return ERROR_24_EMPTY;
-    }
-
-    // start with leading 1s, if the string indicates the number has six leading 1s
-    int32_t res = input.front() == enc[ONES] ? -1 : 0;
-
+    int32_t res = input.front() == enc[ONES] ? -1u : 0;
     for (char byte: input) {
-        // extract character, make sure the first bit is not set
-        if (byte < 0) {
-            return ERROR_24_HIGH_BIT;
-        }
-
-        // decode character into six bit value, make sure the decode-table did not reject the character
-        char bits = dec[byte];
-        if (bits >= 64) {
-            return ERROR_24_WRONG_CHAR;
-        }
-
-        // shift digits we already have and add the six bits
-        res <<= 6;
-        res += bits;
+        res = (res << 6) + dec[byte];
     }
-
-    // undo leading ones, which were needed for filling up sparse encodings
-    return res & 0x00ffffff;
+    return res & (1u << 24) - 1;
 }
 
-uint32_t decode32(const string &input, ERROR &error) {
-    if (input.empty()) {
-        error = ERROR::EMPTY;
-        return -1;
-    }
-
-    // start with leading 1s, if the string indicates the number has six leading 1s
-    int32_t res = input.front() == enc[ONES] ? -1 : 0;
-
+uint32_t decode32(const string &input) {
+    auto res = input.front() == enc[ONES] ? -1u : 0;
     for (char byte: input) {
-        // extract character, make sure the first bit is not set
-        if (byte < 0) {
-            error = ERROR::HIGH_BIT;
-            return -1;
-        }
-
-        // decode character into six bit value, make sure the decode-table did not reject the character
-        char bits = dec[byte];
-        if (bits >= 64) {
-            error = ERROR::WRONG_CHAR;
-            return -1;
-        }
-
-        // shift digits we already have and add the six bits
-        res <<= 6;
-        res += bits;
+        res = (res << 6) + dec[byte];
     }
-
-    error = ERROR::OK;
     return res;
 }
 
 uint64_t decode48(const string &input) {
-    if (input.empty()) {
-        return ERROR_48_EMPTY;
-    }
-
-    // start with leading 1s, if the string indicates the number has six leading 1s
-    int64_t res = input.front() == enc[ONES] ? -1ul : 0;
-
+    auto res = input.front() == enc[ONES] ? -1ul : 0;
     for (char byte: input) {
-        // extract character, make sure the first bit is not set
-        if (byte < 0) {
-            return ERROR_48_HIGH_BIT;
-        }
-
-        // decode character into six bit value, make sure the decode-table did not reject the character
-        char bits = dec[byte];
-        if (bits >= 64) {
-            return ERROR_48_WRONG_CHAR;
-        }
-
-        // shift digits we already have and add the six bits
-        res <<= 6;
-        res += bits;
+        res = (res << 6) + dec[byte];
     }
-
-    // undo leading ones, which were needed for filling up sparse encodings
-    return res & 0x0000ffffffffffff;
+    return res & (1ul << 48) - 1;
 }
 
-pair<uint64_t, uint64_t> decode128(const string &input, ERROR &error) {
-    if (input.empty()) {
-        error = ERROR::EMPTY;
-        return {-1, -1};
-    }
-
-    // start with leading 1s, if the string indicates the number has six leading 1s
-    pair<int64_t, int64_t> res{input.front() == enc[ONES] ? -1ul : 0, input.front() == enc[ONES] ? -1ul : 0};
-
+pair<uint64_t, uint64_t> decode128(const string &input) {
+    auto init = input.front() == enc[ONES] ? -1ul : 0;
+    pair<uint64_t, uint64_t> res{init, init};
     for (char byte: input) {
-        // extract character, make sure the first bit is not set
-        if (byte < 0) {
-            error = ERROR::HIGH_BIT;
-            return {-1, -1};
-        }
-
-        // decode character into six bit value, make sure the decode-table did not reject the character
-        char bits = dec[byte];
-        if (bits >= 64) {
-            error = ERROR::WRONG_CHAR;
-            return {-1, -1};
-        }
-
-        // shift digits we already have and add the six bits
-        res.first <<= 6;
-        res.first += (res.second >> 58) & ONES;
-        res.second <<= 6;
-        res.second += bits;
+        res.first = (res.first << 6) + (res.second >> 58 & ONES);
+        res.second = (res.second << 6) + dec[byte];
     }
-
-    error = ERROR::OK;
     return res;
 }
