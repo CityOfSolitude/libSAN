@@ -3,8 +3,8 @@
 
 constexpr uint8_t ONES = 0x3f;
 
-constexpr char encodeTable[65] = "+123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-";
-constexpr char decodeTable[129] =
+constexpr char enc[65] = "+123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-";
+constexpr char dec[129] =
         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
         "\x00" // +
         "@"

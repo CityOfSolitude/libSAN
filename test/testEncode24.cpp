@@ -2,7 +2,7 @@
 #include <san.h>
 #include <vector>
 
-TEST(testEncode, encodeSmallNaturals) {
+TEST(testEncode24, encodeSmallNaturals) {
     std::string encoded;
     constexpr int32_t bound = 63;
 
@@ -21,7 +21,7 @@ TEST(testEncode, encodeSmallNaturals) {
     ASSERT_EQ(encoded.length(), 2);
 }
 
-TEST(testEncode, encodeLargerNaturals) {
+TEST(testEncode24, encodeLargerNaturals) {
     std::string encoded;
     constexpr int32_t bound = 64 * 63;
 
@@ -40,7 +40,7 @@ TEST(testEncode, encodeLargerNaturals) {
     ASSERT_EQ(encoded.length(), 3);
 }
 
-TEST(testEncode, encodeSmallNegatives) {
+TEST(testEncode24, encodeSmallNegatives) {
     std::string encoded;
     constexpr int32_t bound = -65;
 
@@ -65,7 +65,7 @@ TEST(testEncode, encodeSmallNegatives) {
     ASSERT_EQ(encoded.length(), 3);
 }
 
-TEST(testEncode, encodeLargerNegatives) {
+TEST(testEncode24, encodeLargerNegatives) {
     std::string encoded;
     constexpr int32_t bound = -64 * 64 - 1;
 
@@ -84,7 +84,7 @@ TEST(testEncode, encodeLargerNegatives) {
     ASSERT_EQ(encoded.length(), 4);
 }
 
-TEST(testEncode, encodeProperties) {
+TEST(testEncode24, encodeProperties) {
     // we count the encoding length of all possible 24 bit values, which are either 1, 2, 3 or 4 characters
     std::vector<size_t> counter(4, 0);
     for (int32_t input = 0; input < (1u << 24); ++input) {
@@ -96,31 +96,31 @@ TEST(testEncode, encodeProperties) {
         ++counter[length - 1];
     }
     // these are the amount of numbers we can encode in each length segment
-    ASSERT_EQ(counter[0], 64); // 0 to 63 and -1, 64 has a two byte encoding
+    ASSERT_EQ(counter[0], 64); // 0 to 62 and -1, 63 has a two byte encoding (we need to add a leading 0s block)
     ASSERT_EQ(counter[1], (1 << 12) - (1 << 6)); // 2^12 - 2^6
     ASSERT_EQ(counter[2], (1 << 18) - (1 << 12)); // 2^18 - 2^12
     ASSERT_EQ(counter[3], (1 << 24) - (1 << 18)); // 2^24 - 2^18
 }
 
-TEST(testEncode, encodeDecodeAllUnsigned) {
+TEST(testEncode24, encodeDecodeAllUnsigned) {
     for (uint32_t input = 0; input < (1u << 24); ++input) {
         std::string encoded = encode24(input);
         ASSERT_EQ(input, decode24(encoded)) << encoded;
     }
 }
 
-TEST(testEncode, encodeDecodeAllSigned) {
+TEST(testEncode24, encodeDecodeAllSigned) {
     for (int32_t input = -(1 << 23); input < (1 << 23); ++input) {
         std::string encoded = encode24(input);
         ASSERT_EQ(input, decode24Signed(encoded)) << encoded;
     }
 }
 
-TEST(testEncode, invalidEmpty) {
+TEST(testEncode24, invalidEmpty) {
     ASSERT_EQ(ERROR_24_EMPTY, decode24(""));
 }
 
-TEST(testEncode, invalidHighBit) {
+TEST(testEncode24, invalidHighBit) {
     std::string encoded;
     for (auto i = -1; i < 63; ++i) {
         encoded = encode24(i);
@@ -133,7 +133,7 @@ TEST(testEncode, invalidHighBit) {
     }
 }
 
-TEST(testEncode, invalidWrongChar) {
+TEST(testEncode24, invalidWrongChar) {
     size_t error_high = 0;
     size_t error_wrong = 0;
     size_t success = 0;

@@ -3,24 +3,24 @@
 #include <unordered_set>
 
 TEST(testTables, encodeTableSize) {
-    ASSERT_EQ(strlen(encodeTable), 64);
+    ASSERT_EQ(strlen(enc), 64);
 }
 
 TEST(testTables, encodeTablePrintable) {
     for (auto i = 0u; i < 64; ++i) {
-        ASSERT_GE(encodeTable[i], 32);
+        ASSERT_GE(enc[i], 32);
     }
 }
 
 TEST(testTables, encodeTable7Bit) {
     for (auto i = 0u; i < 64; ++i) {
-        ASSERT_LT(encodeTable[i], 128);
+        ASSERT_LT(enc[i], 128);
     }
 }
 
 TEST(testTables, encodeTableCharset) {
     for (auto i = 0u; i < 64; ++i) {
-        auto &c = encodeTable[i];
+        auto &c = enc[i];
         auto isDigit = c >= '0' && c <= '9';
         auto isUpperCaseLetter = c >= 'A' && c <= 'Z';
         auto isLowerCaseLetter = c >= 'a' && c <= 'z';
@@ -30,13 +30,13 @@ TEST(testTables, encodeTableCharset) {
 }
 
 TEST(testTables, decodeTableSize) {
-    ASSERT_EQ(strlen(decodeTable), 43); // '0'
-    ASSERT_EQ(strlen(decodeTable + 44), 128 - 44);
+    ASSERT_EQ(strlen(dec), 43); // '0'
+    ASSERT_EQ(strlen(dec + 44), 128 - 44);
 }
 
 TEST(testTables, decodeTableBase64OrSpace) {
     for (auto i = 0u; i < 128; ++i) {
-        auto &c = decodeTable[i];
+        auto &c = dec[i];
         if (c == '@') {
             continue;
         }
@@ -49,7 +49,7 @@ TEST(testTables, decodeTableUnique) {
     std::unordered_set<char> seen;
     auto dead = 0u;
     for (auto i = 0u; i < 128; ++i) {
-        auto &c = decodeTable[i];
+        auto &c = dec[i];
         if (c == '@') {
             ++dead;
         } else {
@@ -63,18 +63,18 @@ TEST(testTables, decodeTableUnique) {
 
 TEST(testTables, bijectionEncodeDecode) {
     for (auto i = 0u; i < 64; ++i) {
-        ASSERT_EQ(i, decodeTable[encodeTable[i]]);
+        ASSERT_EQ(i, dec[enc[i]]);
     }
 }
 
 TEST(testTables, bijectionDecodeEncode) {
     auto dead = 0u;
     for (auto i = 0u; i < 128; ++i) {
-        char c = decodeTable[i];
+        char c = dec[i];
         if (c == '@') {
             ++dead;
         } else {
-            ASSERT_EQ(i, encodeTable[c]);
+            ASSERT_EQ(i, enc[c]);
         }
     }
     ASSERT_EQ(dead, 64);

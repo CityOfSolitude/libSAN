@@ -3,9 +3,13 @@
 
 #include <string>
 
-constexpr uint32_t ERROR_24_EMPTY = 0x01000000;
-constexpr uint32_t ERROR_24_HIGH_BIT = 0x02000000;
-constexpr uint32_t ERROR_24_WRONG_CHAR = 0x04000000;
+constexpr uint32_t ERROR_24_EMPTY = 1u << 24;
+constexpr uint32_t ERROR_24_HIGH_BIT = 1u << 25;
+constexpr uint32_t ERROR_24_WRONG_CHAR = 1u << 26;
+
+constexpr uint64_t ERROR_48_EMPTY = 1ul << 48;
+constexpr uint64_t ERROR_48_HIGH_BIT = 1ul << 49;
+constexpr uint64_t ERROR_48_WRONG_CHAR = 1ul << 50;
 
 /**
  * Encodes a 3-byte input value into an up-to 4-byte output string.
@@ -33,7 +37,32 @@ inline std::string encode24(uint32_t input) {
 }
 
 /**
-  * Decodes a previously encoded 3-byte value from its string representation.
+ * Encodes a 6-byte input value into an up-to 8-byte output string.
+ * The first two bytes are irrelevant and will be ignored.
+ * Signedness will just work, within the bound of a signed 48 bit value.
+ *
+ * The output will be as short as possible, by omitting leading 0 blocks.
+ * Also we omit repeated, leading blocks of 1s, with the downside of having
+ * to explicitly mark some positive numbers with a leading 1s block with an
+ * additional 0s block.
+ *
+ * @param input a 24 bit value, encoded within a 64 bit value
+ * @return a non-empty encoding of the input value.
+ */
+std::string encode48Signed(int64_t input);
+
+/**
+ * Convenience method for unsigned values; the encoding does not change and
+ * will still encode very high unsigned values sparse.
+ * @param input a 24 bit value, embedded within an unsigned 32 bit value
+ * @return a non-empty encoding of the input value.
+ */
+inline std::string encode48(uint64_t input) {
+    return encode48Signed(static_cast<int64_t>(input));
+}
+
+/**
+ * Decodes a previously encoded 3-byte value from its string representation.
  *
  * @param input a 1-4 byte string, which was the output of a previous encoding call
  * @return the decoded 24 but value, interpreted as unsigned value
@@ -51,6 +80,27 @@ uint32_t decode24(const std::string &input);
 inline int32_t decode24Signed(const std::string &input) {
     auto res = static_cast<int32_t>(decode24(input));
     return res & 0x00800000 ? res | static_cast<int32_t>(0xff000000) : res;
+}
+
+/**
+ * Decodes a previously encoded 6-byte value from its string representation.
+ *
+ * @param input a 1-8 byte string, which was the output of a previous encoding call
+ * @return the decoded 48 but value, interpreted as unsigned value
+ */
+uint64_t decode48(const std::string &input);
+
+/**
+ * Convenience method for signed values; the decoding does not differ from
+ * the signed one, with the exception of the first 8 bits, which will repeat
+ * the sign of the 48 bit number.
+ *
+ * @param input a 1-8 byte string, which was the output of a previous encoding call
+ * @return the decoded 48 but value, with the highest 8 bit replicating the sign
+ */
+inline int64_t decode48Signed(const std::string &input) {
+    auto res = static_cast<int64_t>(decode48(input));
+    return res & 0x00800000000000 ? res | static_cast<int64_t>(0xffff000000000000) : res;
 }
 
 #endif //LIBSAN_SAN_H
