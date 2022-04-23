@@ -20,7 +20,9 @@ add_executable(unittest
         test/testEncode24.cpp
         test/testEncode32.cpp
         test/testEncode48.cpp
+        test/testApplications.cpp
         test/main.cpp)
+
 target_include_directories(unittest PRIVATE src)
 target_link_libraries(unittest gtest_main SAN)
 add_test(NAME unittest COMMAND unittest)
