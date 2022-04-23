@@ -7,9 +7,14 @@ constexpr uint32_t ERROR_24_EMPTY = 1u << 24;
 constexpr uint32_t ERROR_24_HIGH_BIT = 1u << 25;
 constexpr uint32_t ERROR_24_WRONG_CHAR = 1u << 26;
 
+enum class ERROR_32 {
+    OK, EMPTY, HIGH_BIT, WRONG_CHAR
+};
+
 constexpr uint64_t ERROR_48_EMPTY = 1ul << 48;
 constexpr uint64_t ERROR_48_HIGH_BIT = 1ul << 49;
 constexpr uint64_t ERROR_48_WRONG_CHAR = 1ul << 50;
+
 
 /**
  * Encodes a 3-byte input value into an up-to 4-byte output string.
@@ -34,6 +39,29 @@ std::string encode24Signed(int32_t input);
  */
 inline std::string encode24(uint32_t input) {
     return encode24Signed(static_cast<int32_t>(input));
+}
+
+/**
+ * Encodes a 4-byte input value into an up-to 6-byte output string.
+ *
+ * The output will be as short as possible, by omitting leading 0 blocks.
+ * Also we omit repeated, leading blocks of 1s, with the downside of having
+ * to explicitly mark some positive numbers with a leading 1s block with an
+ * additional 0s block.
+ *
+ * @param input a 32 bit value
+ * @return a non-empty encoding of the input value.
+ */
+std::string encode32Signed(int32_t input);
+
+/**
+ * Convenience method for unsigned values; the encoding does not change and
+ * will still encode very high unsigned values sparse.
+ * @param input a 32 bit value
+ * @return a non-empty encoding of the input value.
+ */
+inline std::string encode32(uint32_t input) {
+    return encode32Signed(static_cast<int32_t>(input));
 }
 
 /**
@@ -80,6 +108,27 @@ uint32_t decode24(const std::string &input);
 inline int32_t decode24Signed(const std::string &input) {
     auto res = static_cast<int32_t>(decode24(input));
     return res & 0x00800000 ? res | static_cast<int32_t>(0xff000000) : res;
+}
+
+/**
+ * Decodes a previously encoded 4-byte value from its string representation.
+ *
+ * @param input a 1-6 byte string, which was the output of a previous encoding call
+ * @param error reference parameter to return whether the operation was successful or not
+ * @return the decoded 32 but value, interpreted as unsigned value
+ */
+uint32_t decode32(const std::string &input, ERROR_32 &error);
+
+/**
+ * Convenience method for signed values; the decoding does not differ from
+ * the signed one.
+ *
+ * @param input a 1-6 byte string, which was the output of a previous encoding call
+ * @param error reference parameter to return whether the operation was successful or not
+ * @return the decoded 32 but value
+ */
+inline int32_t decode32Signed(const std::string &input, ERROR_32 &error) {
+    return static_cast<int32_t>(decode32(input, error));
 }
 
 /**

@@ -24,6 +24,37 @@ string encode24Signed(int32_t input) {
     return {enc[b4]};
 }
 
+string encode32Signed(int32_t input) {
+    uint8_t b6 = input & ONES;
+    uint8_t b5 = input >> 6 & ONES;
+    uint8_t b4 = input >> 12 & ONES;
+    uint8_t b3 = input >> 18 & ONES;
+    uint8_t b2 = input >> 24 & ONES;
+    uint8_t b1 = input >> 30 & ONES;
+
+    if (b2 != ONES ? b1 : b1 != ONES) {
+        return {enc[b1], enc[b2], enc[b3], enc[b4], enc[b5], enc[b6]};
+    }
+
+    if (b3 != ONES ? b2 : b2 != ONES) {
+        return {enc[b2], enc[b3], enc[b4], enc[b5], enc[b6]};
+    }
+
+    if (b4 != ONES ? b3 : b3 != ONES) {
+        return {enc[b3], enc[b4], enc[b5], enc[b6]};
+    }
+
+    if (b5 != ONES ? b4 : b4 != ONES) {
+        return {enc[b4], enc[b5], enc[b6]};
+    }
+
+    if (b6 != ONES ? b5 : b5 != ONES) {
+        return {enc[b5], enc[b6]};
+    }
+
+    return {enc[b6]};
+}
+
 string encode48Signed(int64_t input) {
     uint8_t b8 = input & ONES;
     uint8_t b7 = input >> 6 & ONES;
@@ -92,6 +123,38 @@ uint32_t decode24(const string &input) {
 
     // undo leading ones, which were needed for filling up sparse encodings
     return res & 0x00ffffff;
+}
+
+uint32_t decode32(const string &input, ERROR_32 &error) {
+    if (input.empty()) {
+        error = ERROR_32::EMPTY;
+        return -1;
+    }
+
+    // start with leading 1s, if the string indicates the number has six leading 1s
+    int32_t res = input.front() == enc[ONES] ? -1 : 0;
+
+    for (char byte: input) {
+        // extract character, make sure the first bit is not set
+        if (byte < 0) {
+            error = ERROR_32::HIGH_BIT;
+            return -1;
+        }
+
+        // decode character into six bit value, make sure the decode-table did not reject the character
+        char bits = dec[byte];
+        if (bits >= 64) {
+            error = ERROR_32::WRONG_CHAR;
+            return -1;
+        }
+
+        // shift digits we already have and add the six bits
+        res <<= 6;
+        res += bits;
+    }
+
+    error = ERROR_32::OK;
+    return res;
 }
 
 uint64_t decode48(const string &input) {
