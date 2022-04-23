@@ -41,6 +41,45 @@ TEST(testEncode32, encodeLargerNaturals) {
     ASSERT_EQ(encoded.length(), 3);
 }
 
+TEST(testEncode32, encodeHighestTwoBits) {
+    std::set<uint32_t> seen;
+    size_t counter = 0;
+    for (uint32_t i = 0; i < 1u << 14; ++i) {
+        seen.insert(i);
+        const std::string &enc = encode32(i << 16);
+        if (enc.length() < 6) {
+            continue;
+        }
+        ASSERT_EQ('+', enc[0]);
+        ++counter;
+    }
+    ASSERT_EQ(1u << 14, seen.size());
+    // only if the highest 6 bit are all ones, we need to add the leading '+'
+    // since we generate all patterns with 14 bits, this leaves 8 bits, i.e., 256 different patterns
+    ASSERT_EQ(256, counter);
+    for (uint32_t i = 1u << 14; i < 1u << 15; ++i) {
+        seen.insert(i);
+        ASSERT_EQ('1', encode32(i << 16)[0]);
+        ++counter;
+    }
+    ASSERT_EQ((1u << 14) * 2, seen.size());
+    ASSERT_EQ((1u << 14) + 256, counter); // the remaining cases do not have this "problem" of being just 5 byte long
+    for (uint32_t i = 1u << 15; i < (1u << 15) + (1u << 14); ++i) {
+        seen.insert(i);
+        ASSERT_EQ('0', encode32(i << 16)[0]);
+        ++counter;
+    }
+    ASSERT_EQ((1u << 14) * 3, seen.size());
+    ASSERT_EQ((1u << 14) * 2 + 256, counter);
+    for (uint32_t i = (1u << 15) + (1u << 14); i < 1u << 16; ++i) {
+        seen.insert(i);
+        ASSERT_EQ('-', encode32(i << 16)[0]);
+        ++counter;
+    }
+    ASSERT_EQ((1u << 14) * 4, seen.size());
+    ASSERT_EQ((1u << 14) * 3 + 256, counter);
+}
+
 TEST(testEncode32, encodeSmallNegatives) {
     std::string encoded;
     constexpr int32_t bound = -65;

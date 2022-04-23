@@ -49,6 +49,10 @@ inline std::string encode24(uint32_t input) {
  * to explicitly mark some positive numbers with a leading 1s block with an
  * additional 0s block.
  *
+ * For 32-bit values, we are left with a 2-bit high block, that will only ever
+ * be encoded with the 000000, 000001, 111110 and 111111 block (since we honor
+ * the sign!). For our encoding this means '+', '1', '0' or '-', respectively.
+ *
  * @param input a 32 bit value
  * @return a non-empty encoding of the input value.
  */
