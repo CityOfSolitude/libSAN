@@ -3,6 +3,8 @@
 #include <map>
 #include <san.h>
 
+using namespace san;
+
 std::map<std::string, std::string> ips{
     // NOLINT(cert-err58-cpp)
     {"0.0.0.0", "+"},           {"255.255.255.255", "-"},    {"192.168.0.0", "az+"},

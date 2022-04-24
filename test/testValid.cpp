@@ -2,6 +2,8 @@
 #include <san.h>
 #include <tables.h>
 
+using namespace san;
+
 TEST(testValid, empty) {
     ASSERT_EQ(ERROR::EMPTY, valid(""));
     ASSERT_EQ(ERROR::EMPTY, valid("", 1));

@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace san {
+
 enum class ERROR { OK, EMPTY, HIGH_BIT, WRONG_CHAR, TOO_LONG };
 
 /**
@@ -192,5 +194,7 @@ std::pair<uint64_t, uint64_t> decode128(const std::string &input);
 inline std::pair<int64_t, int64_t> decode128Signed(const std::string &input) {
     return static_cast<std::pair<int64_t, int64_t>>(decode128(input));
 }
+
+} // namespace san
 
 #endif // LIBSAN_SAN_H

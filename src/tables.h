@@ -1,6 +1,8 @@
 #ifndef SAN_TABLES_H
 #define SAN_TABLES_H
 
+namespace san {
+
 constexpr uint8_t ONES = 0x3f;
 
 constexpr char enc[65] = "+123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-";
@@ -17,5 +19,7 @@ constexpr char dec[129] = "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
                           "\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16" // a-m
                           "\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\x20\x21\x22\x23" // n-z
                           "@@@@@";
+
+} // namespace san
 
 #endif // SAN_TABLES_H

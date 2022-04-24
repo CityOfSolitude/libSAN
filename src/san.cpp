@@ -4,6 +4,8 @@
 
 using namespace std;
 
+namespace san {
+
 ERROR valid(const string &input, size_t bitSize) {
     if (input.empty()) {
         return ERROR::EMPTY;
@@ -144,3 +146,5 @@ pair<uint64_t, uint64_t> decode128(const string &input) {
     }
     return res;
 }
+
+} // namespace san

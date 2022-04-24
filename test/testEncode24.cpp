@@ -2,6 +2,8 @@
 #include <san.h>
 #include <vector>
 
+using namespace san;
+
 TEST(testEncode24, encodeSmallNaturals) {
     std::string encoded;
     constexpr int32_t bound = 63;

@@ -3,6 +3,8 @@
 #include <set>
 #include <vector>
 
+using namespace san;
+
 TEST(testEncode32, encodeSmallNaturals) {
     std::string encoded;
     constexpr int32_t bound = 63;

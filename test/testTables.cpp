@@ -2,6 +2,8 @@
 #include <tables.h>
 #include <unordered_set>
 
+using namespace san;
+
 TEST(testTables, encodeTableSize) { ASSERT_EQ(strlen(enc), 64); }
 
 TEST(testTables, encodeTablePrintable) {
