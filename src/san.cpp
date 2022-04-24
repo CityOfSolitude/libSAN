@@ -21,10 +21,11 @@ ERROR valid(const string &input, size_t bitSize) {
     }
 
     if (bitSize) {
-        int unneededBytes = static_cast<int>(bitSize + 5) / 6 - input.size();
-        if (unneededBytes < 0) {
+        size_t maxSize = (bitSize + 5) / 6;
+        size_t size = input.size();
+        if (size > maxSize) {
             return ERROR::TOO_LONG;
-        } else if (unneededBytes == 0) {
+        } else if (size == maxSize) {
             auto rest = bitSize % 6;
             if (rest && dec[input.front()] & ~((1u << rest) - 1)) {
                 return ERROR::TOO_LONG;
