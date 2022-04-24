@@ -88,10 +88,36 @@ std::string encode48Signed(int64_t input);
 /**
  * Convenience method for unsigned values; the encoding does not change and
  * will still encode very high unsigned values sparse.
+ *
  * @param input a 24 bit value, embedded within an unsigned 32 bit value
  * @return a non-empty encoding of the input value.
  */
 inline std::string encode48(uint64_t input) { return encode48Signed(static_cast<int64_t>(input)); }
+
+/**
+ * Encodes a 8-byte input value into an up-to 11-byte output string.
+ *
+ * The output will be as short as possible, by omitting leading 0 blocks.
+ * Also we omit repeated, leading blocks of 1s, with the downside of having
+ * to explicitly mark some positive numbers with a leading 1s block with an
+ * additional 0s block.
+ *
+ * For 64-bit values, we are left with a 4-bit high block, that will only ever
+ * be encoded with the 16 different blocks (since we honor the sign!).
+ *
+ * @param input a 64 bit value
+ * @return a non-empty encoding of the input value.
+ */
+std::string encode64Signed(int64_t input);
+
+/**
+ * Convenience method for unsigned values; the encoding does not change and
+ * will still encode very high unsigned values sparse.
+ *
+ * @param input a 64 bit value
+ * @return a non-empty encoding of the input value.
+ */
+inline std::string encode64(uint64_t input) { return encode64Signed(static_cast<int64_t>(input)); }
 
 /**
  * Encodes a 16-byte input value into an up-to 22-byte output string.
@@ -109,6 +135,7 @@ std::string encode128Signed(int64_t ab, int64_t cd);
 /**
  * Convenience method for unsigned values; the encoding does not change and
  * will still encode very high unsigned values sparse.
+ *
  * @param input two 64 bit values
  * @return a non-empty encoding of the input value.
  */
@@ -146,8 +173,7 @@ inline int32_t decode24Signed(const std::string &input) {
 uint32_t decode32(const std::string &input);
 
 /**
- * Convenience method for signed values; the decoding does not differ from
- * the signed one.
+ * Convenience method for signed values; the decoding does not differ from the signed one.
  *
  * @param input a 1-6 byte string, which was the output of a previous encoding call
  * @return the decoded 32 bit value
@@ -175,6 +201,24 @@ uint64_t decode48(const std::string &input);
 inline int64_t decode48Signed(const std::string &input) {
     auto res = static_cast<int64_t>(decode48(input));
     return res & 0x00800000000000 ? res | static_cast<int64_t>(0xffff000000000000) : res;
+}
+
+/**
+ * Decodes a previously encoded 8-byte value from its string representation.
+ *
+ * @param input a 1-11 byte string, which was the output of a previous encoding call
+ * @return the decoded 64 bit value, interpreted as unsigned value
+ */
+uint64_t decode64(const std::string &input);
+
+/**
+ * Convenience method for signed values; the decoding does not differ from the signed one.
+ *
+ * @param input a 1-11 byte string, which was the output of a previous encoding call
+ * @return the decoded 64 bit value
+ */
+inline int64_t decode64Signed(const std::string &input) {
+    return static_cast<int64_t>(decode64(input));
 }
 
 /**
