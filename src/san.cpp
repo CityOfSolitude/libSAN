@@ -1,6 +1,6 @@
+#include <array>
 #include <san.h>
 #include <tables.h>
-#include <array>
 
 using namespace std;
 
@@ -9,7 +9,7 @@ ERROR valid(const string &input, size_t bitSize) {
         return ERROR::EMPTY;
     }
 
-    for (char byte: input) {
+    for (char byte : input) {
         if (byte < 0) {
             return ERROR::HIGH_BIT;
         }
@@ -19,7 +19,7 @@ ERROR valid(const string &input, size_t bitSize) {
     }
 
     if (bitSize) {
-        int unneededBytes = (bitSize + 5) / 6 - input.size();
+        int unneededBytes = static_cast<int>(bitSize + 5) / 6 - input.size();
         if (unneededBytes < 0) {
             return ERROR::TOO_LONG;
         } else if (unneededBytes == 0) {
@@ -33,14 +33,17 @@ ERROR valid(const string &input, size_t bitSize) {
     return ERROR::OK;
 }
 
-#define CASE(i) if (blocks[(i) + 1] != enc[63] ? blocks[i] != enc[0] : blocks[i] != enc[63]) { return {blocks.begin() + (i), blocks.end()}; }
+#define CASE(i)                                                                                    \
+    if (blocks[(i) + 1] != enc[63] ? blocks[i] != enc[0] : blocks[i] != enc[63]) {                 \
+        return {blocks.begin() + (i), blocks.end()};                                               \
+    }
 
 string encode24Signed(int32_t input) {
     array<char, 4> blocks{
-            enc[input >> 18 & ONES],
-            enc[input >> 12 & ONES],
-            enc[input >> 6 & ONES],
-            enc[input & ONES],
+        enc[input >> 18 & ONES],
+        enc[input >> 12 & ONES],
+        enc[input >> 6 & ONES],
+        enc[input & ONES],
     };
     CASE(0)
     CASE(1)
@@ -49,14 +52,8 @@ string encode24Signed(int32_t input) {
 }
 
 string encode32Signed(int32_t input) {
-    array<char, 6> blocks{
-            enc[input >> 30 & ONES],
-            enc[input >> 24 & ONES],
-            enc[input >> 18 & ONES],
-            enc[input >> 12 & ONES],
-            enc[input >> 6 & ONES],
-            enc[input & ONES]
-    };
+    array<char, 6> blocks{enc[input >> 30 & ONES], enc[input >> 24 & ONES], enc[input >> 18 & ONES],
+                          enc[input >> 12 & ONES], enc[input >> 6 & ONES],  enc[input & ONES]};
     CASE(0)
     CASE(1)
     CASE(2)
@@ -66,16 +63,9 @@ string encode32Signed(int32_t input) {
 }
 
 string encode48Signed(int64_t input) {
-    array<char, 8> blocks{
-            enc[input >> 42 & ONES],
-            enc[input >> 36 & ONES],
-            enc[input >> 30 & ONES],
-            enc[input >> 24 & ONES],
-            enc[input >> 18 & ONES],
-            enc[input >> 12 & ONES],
-            enc[input >> 6 & ONES],
-            enc[input & ONES]
-    };
+    array<char, 8> blocks{enc[input >> 42 & ONES], enc[input >> 36 & ONES], enc[input >> 30 & ONES],
+                          enc[input >> 24 & ONES], enc[input >> 18 & ONES], enc[input >> 12 & ONES],
+                          enc[input >> 6 & ONES],  enc[input & ONES]};
     CASE(0)
     CASE(1)
     CASE(2)
@@ -88,29 +78,14 @@ string encode48Signed(int64_t input) {
 
 string encode128Signed(int64_t ab, int64_t cd) {
     array<char, 22> blocks{
-            enc[ab >> 62 & ONES],
-            enc[ab >> 56 & ONES],
-            enc[ab >> 50 & ONES],
-            enc[ab >> 44 & ONES],
-            enc[ab >> 38 & ONES],
-            enc[ab >> 32 & ONES],
-            enc[ab >> 26 & ONES],
-            enc[ab >> 20 & ONES],
-            enc[ab >> 14 & ONES],
-            enc[ab >> 8 & ONES],
-            enc[ab >> 2 & ONES],
-            enc[(ab << 4 & 0x30) | (cd >> 60 & 0x0f)],
-            enc[cd >> 54 & ONES],
-            enc[cd >> 48 & ONES],
-            enc[cd >> 42 & ONES],
-            enc[cd >> 36 & ONES],
-            enc[cd >> 30 & ONES],
-            enc[cd >> 24 & ONES],
-            enc[cd >> 18 & ONES],
-            enc[cd >> 12 & ONES],
-            enc[cd >> 6 & ONES],
-            enc[cd & ONES]
-    };
+        enc[ab >> 62 & ONES], enc[ab >> 56 & ONES], enc[ab >> 50 & ONES],
+        enc[ab >> 44 & ONES], enc[ab >> 38 & ONES], enc[ab >> 32 & ONES],
+        enc[ab >> 26 & ONES], enc[ab >> 20 & ONES], enc[ab >> 14 & ONES],
+        enc[ab >> 8 & ONES],  enc[ab >> 2 & ONES],  enc[(ab << 4 & 0x30) | (cd >> 60 & 0x0f)],
+        enc[cd >> 54 & ONES], enc[cd >> 48 & ONES], enc[cd >> 42 & ONES],
+        enc[cd >> 36 & ONES], enc[cd >> 30 & ONES], enc[cd >> 24 & ONES],
+        enc[cd >> 18 & ONES], enc[cd >> 12 & ONES], enc[cd >> 6 & ONES],
+        enc[cd & ONES]};
 
     CASE(0)
     CASE(1)
@@ -138,7 +113,7 @@ string encode128Signed(int64_t ab, int64_t cd) {
 
 uint32_t decode24(const string &input) {
     int32_t res = input.front() == enc[ONES] ? -1u : 0;
-    for (char byte: input) {
+    for (char byte : input) {
         res = (res << 6) + dec[byte];
     }
     return res & (1u << 24) - 1;
@@ -146,7 +121,7 @@ uint32_t decode24(const string &input) {
 
 uint32_t decode32(const string &input) {
     auto res = input.front() == enc[ONES] ? -1u : 0;
-    for (char byte: input) {
+    for (char byte : input) {
         res = (res << 6) + dec[byte];
     }
     return res;
@@ -154,7 +129,7 @@ uint32_t decode32(const string &input) {
 
 uint64_t decode48(const string &input) {
     auto res = input.front() == enc[ONES] ? -1ul : 0;
-    for (char byte: input) {
+    for (char byte : input) {
         res = (res << 6) + dec[byte];
     }
     return res & (1ul << 48) - 1;
@@ -163,7 +138,7 @@ uint64_t decode48(const string &input) {
 pair<uint64_t, uint64_t> decode128(const string &input) {
     auto init = input.front() == enc[ONES] ? -1ul : 0;
     pair<uint64_t, uint64_t> res{init, init};
-    for (char byte: input) {
+    for (char byte : input) {
         res.first = (res.first << 6) + (res.second >> 58 & ONES);
         res.second = (res.second << 6) + dec[byte];
     }

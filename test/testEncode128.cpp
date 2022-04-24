@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <san.h>
-#include <vector>
 #include <set>
+#include <vector>
 
 TEST(testEncode128, encodeSmallNaturals) {
     std::string encoded;
@@ -26,7 +26,8 @@ TEST(testEncode128, encodeLargerNaturals) {
     std::string encoded;
     constexpr int64_t bound = 64 * 63;
 
-    // we can encode 64 * 63 number with 2 (or 1) digit, since all starting with an all 1s block have already size 3
+    // we can encode 64 * 63 number with 2 (or 1) digit,
+    // since all starting with an all 1s block have already size 3
     for (auto i = 63l; i < bound; ++i) {
         encoded = encode128(0, i);
         ASSERT_EQ(encoded.length(), 2);
@@ -70,7 +71,8 @@ TEST(testEncode128, encodeLargerNegatives) {
     std::string encoded;
     constexpr int64_t bound = -64 * 64 - 1;
 
-    // we can encode 64 * 63 number with 2 (or 1) digit, since all starting with an all 1s block have already size 3
+    // we can encode 64 * 63 number with 2 (or 1) digit,
+    // since all starting with an all 1s block have already size 3
     for (auto i = -65l; i > bound; --i) {
         encoded = encode128(-1, i);
         ASSERT_EQ(encoded.length(), 3);
@@ -86,7 +88,8 @@ TEST(testEncode128, encodeLargerNegatives) {
 }
 
 TEST(testEncode128, encodeProperties) {
-    // we count the encoding length of all possible 24 bit values, which are either 1, 2, 3 or 4 characters
+    // we count the encoding length of all possible 24 bit values,
+    // which are either 1, 2, 3 or 4 characters
     std::vector<size_t> counter(5, 0);
     for (int64_t input = 0; input < (1u << 24); ++input) {
         std::string encoded = encode128(0, input);
@@ -98,35 +101,22 @@ TEST(testEncode128, encodeProperties) {
         ++counter[length - 1];
     }
     // these are the amount of numbers we can encode in each length segment
-    // in contrast to the 24 bit encoding, some numbers will slip into the 5 byte range
-    // sine we do not test the full range, we miss out on the short encodings of small negative numbers)
+    // in contrast to the 24 bit encoding, some numbers will slip into the 5 byte range,
+    // since we do not test the full range, we miss out on the short encodings of
+    // small negative numbers
     ASSERT_EQ(counter[0], 64 - 1); // 0 to 62, 63 has a two byte encoding, -1 is not tested
-    ASSERT_EQ(counter[1], (1 << 12) - (1 << 7) + 1); // 2^12 - 2^6 - 63 small negatives
-    ASSERT_EQ(counter[2], (1 << 18) - (1 << 13) + (1 << 6)); // 2^18 - 2^12 - 63 * 64 small negatives
-    ASSERT_EQ(counter[3], (1 << 24) - (1 << 19) + (1 << 12)); // 2^24 - 2^18 - 63 * 64 * 64 "small" negatives
-    ASSERT_EQ(counter[4], (1 << 18)); // the positive numbers that start with leading 1s, that overflew into 5 byte
+    ASSERT_EQ(counter[1], (1 << 12) - (1 << 7) + 1);          // 2^12 - 2^6 - 63 small negatives
+    ASSERT_EQ(counter[2], (1 << 18) - (1 << 13) + (1 << 6));  // 2^18 - 2^12 - 63*64 small negatives
+    ASSERT_EQ(counter[3], (1 << 24) - (1 << 19) + (1 << 12)); // 2^24 - 2^18 - 63*64*64 negatives
+    ASSERT_EQ(counter[4], (1 << 18)); // positive numbers with leading 1s, that overflew into 5 byte
 }
 
 const std::vector<uint64_t> basePatterns = { // NOLINT(cert-err58-cpp)
-        0x0000000000000000,
-        0x1111111111111111,
-        0x2222222222222222,
-        0x3333333333333333,
-        0x4444444444444444,
-        0x5555555555555555,
-        0x6666666666666666,
-        0x7777777777777777,
-        0x8888888888888888,
-        0x9999999999999999,
-        0xaaaaaaaaaaaaaaaa,
-        0xbbbbbbbbbbbbbbbb,
-        0xcccccccccccccccc,
-        0xdddddddddddddddd,
-        0xeeeeeeeeeeeeeeee,
-        0xffffffffffffffff,
-        0xdeadbeafdeadbeaf,
-        0xbeafdeadbeafdead
-};
+    0x0000000000000000, 0x1111111111111111, 0x2222222222222222, 0x3333333333333333,
+    0x4444444444444444, 0x5555555555555555, 0x6666666666666666, 0x7777777777777777,
+    0x8888888888888888, 0x9999999999999999, 0xaaaaaaaaaaaaaaaa, 0xbbbbbbbbbbbbbbbb,
+    0xcccccccccccccccc, 0xdddddddddddddddd, 0xeeeeeeeeeeeeeeee, 0xffffffffffffffff,
+    0xdeadbeafdeadbeaf, 0xbeafdeadbeafdead};
 
 std::set<std::pair<uint64_t, uint64_t>> createPatterns128() {
     std::set<uint64_t> seen;
@@ -138,7 +128,7 @@ std::set<std::pair<uint64_t, uint64_t>> createPatterns128() {
         // mask to set the MSB, and to wipe everything else by subtracting 1
         uint64_t msbMask = 1ul << msb;
         // now use all the different patterns we defined
-        for (auto pattern: basePatterns) {
+        for (auto pattern : basePatterns) {
             // use all possible 6-bit blocks to also "move over" the pattern
             for (uint64_t block = 0; block <= 0xful; ++block) {
                 // move the block from the LSBs over the pattern, until it vanished beyond the MSB
@@ -167,14 +157,16 @@ std::set<std::pair<uint64_t, uint64_t>> createPatterns128() {
     }
 
     if (seen.size() + duplicates != basePatterns.size() * 16 * (33 * 65) + 1) {
-        throw std::runtime_error("inconsistent test state, unexpected number of visited 128-bit patterns");
+        throw std::runtime_error(
+            "inconsistent test state, unexpected number of visited 128-bit patterns");
     }
     if (seen.size() * 10 < duplicates) {
-        throw std::runtime_error("inconsistent test state, unexpected low percentage of unique 128-bit patterns");
+        throw std::runtime_error(
+            "inconsistent test state, unexpected low percentage of unique 128-bit patterns");
     }
 
     std::set<std::pair<uint64_t, uint64_t>> result;
-    for (auto ab: seen) {
+    for (auto ab : seen) {
         // use pattern high or low
         result.insert({0, ab});
         result.insert({ab, 0});
@@ -188,11 +180,12 @@ std::set<std::pair<uint64_t, uint64_t>> createPatterns128() {
     return result;
 }
 
-const std::set<std::pair<uint64_t, uint64_t>> patterns = createPatterns128(); // NOLINT(cert-err58-cpp)
+const std::set<std::pair<uint64_t, uint64_t>> patterns =
+    createPatterns128(); // NOLINT(cert-err58-cpp)
 
 TEST(testEncode128, patternProperties) {
     std::vector<size_t> bucket(129, 0);
-    for (auto input: patterns) {
+    for (auto input : patterns) {
         uint8_t digits = 0;
         if (input.first) {
             while (input.first) {
@@ -208,11 +201,11 @@ TEST(testEncode128, patternProperties) {
         }
         ++bucket[digits];
     }
-    ASSERT_EQ(bucket[0], 1); // only 0
-    ASSERT_EQ(bucket[1], 1); // only 1
-    ASSERT_EQ(bucket[2], 2); // 10 and 11
-    ASSERT_EQ(bucket[3], 4); // 1xx
-    ASSERT_EQ(bucket[4], 8); // 1xxx
+    ASSERT_EQ(bucket[0], 1);  // only 0
+    ASSERT_EQ(bucket[1], 1);  // only 1
+    ASSERT_EQ(bucket[2], 2);  // 10 and 11
+    ASSERT_EQ(bucket[3], 4);  // 1xx
+    ASSERT_EQ(bucket[4], 8);  // 1xxx
     ASSERT_EQ(bucket[5], 16); // 1xxxx
     ASSERT_EQ(bucket[6], 32); // 1xxxxx
     ASSERT_EQ(bucket[7], 64); // 1xxxxxx (leading 0 and full 6-bit block explored)
@@ -226,7 +219,8 @@ TEST(testEncode128, patternProperties) {
         EXPECT_TRUE(i != 65 || p0 >= 2);
         // we have less patterns for 128 digits than before, but still enough, hence the exception
         EXPECT_TRUE(i != 128 || p0 * 2 >= std::min(p1, p2));
-        EXPECT_TRUE(i == 65 || i == 128 || p0 > std::min(p1, p2)) << i << ": " << p0 << " " << p1 << " " << p2;
+        EXPECT_TRUE(i == 65 || i == 128 || p0 > std::min(p1, p2))
+            << i << ": " << p0 << " " << p1 << " " << p2;
         p2 = p1;
         p1 = bucket[i];
     }
@@ -242,14 +236,14 @@ TEST(testEncode128, patternImportant) {
 }
 
 TEST(testEncode128, encodeDecodeManyUnsigned) {
-    for (auto input: patterns) {
+    for (auto input : patterns) {
         std::string encoded = encode128(input.first, input.second);
         ASSERT_EQ(input, decode128(encoded)) << encoded;
     }
 }
 
 TEST(testEncode128, encodeDecodeAllSigned) {
-    for (auto uns: patterns) {
+    for (auto uns : patterns) {
         auto input = static_cast<std::pair<int64_t, int64_t>>(uns);
         std::string encoded = encode128Signed(input.first, input.second);
         ASSERT_EQ(input, decode128Signed(encoded)) << encoded;

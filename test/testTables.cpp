@@ -2,9 +2,7 @@
 #include <tables.h>
 #include <unordered_set>
 
-TEST(testTables, encodeTableSize) {
-    ASSERT_EQ(strlen(enc), 64);
-}
+TEST(testTables, encodeTableSize) { ASSERT_EQ(strlen(enc), 64); }
 
 TEST(testTables, encodeTablePrintable) {
     for (auto i = 0u; i < 64; ++i) {

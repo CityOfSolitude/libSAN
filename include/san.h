@@ -3,9 +3,7 @@
 
 #include <string>
 
-enum class ERROR {
-    OK, EMPTY, HIGH_BIT, WRONG_CHAR, TOO_LONG
-};
+enum class ERROR { OK, EMPTY, HIGH_BIT, WRONG_CHAR, TOO_LONG };
 
 /**
  * Determines whether the string is a valid encoding, i.e., all characters
@@ -43,9 +41,7 @@ std::string encode24Signed(int32_t input);
  * @param input a 24 bit value, embedded within an unsigned 32 bit value
  * @return a non-empty encoding of the input value.
  */
-inline std::string encode24(uint32_t input) {
-    return encode24Signed(static_cast<int32_t>(input));
-}
+inline std::string encode24(uint32_t input) { return encode24Signed(static_cast<int32_t>(input)); }
 
 /**
  * Encodes a 4-byte input value into an up-to 6-byte output string.
@@ -70,9 +66,7 @@ std::string encode32Signed(int32_t input);
  * @param input a 32 bit value
  * @return a non-empty encoding of the input value.
  */
-inline std::string encode32(uint32_t input) {
-    return encode32Signed(static_cast<int32_t>(input));
-}
+inline std::string encode32(uint32_t input) { return encode32Signed(static_cast<int32_t>(input)); }
 
 /**
  * Encodes a 6-byte input value into an up-to 8-byte output string.
@@ -95,9 +89,7 @@ std::string encode48Signed(int64_t input);
  * @param input a 24 bit value, embedded within an unsigned 32 bit value
  * @return a non-empty encoding of the input value.
  */
-inline std::string encode48(uint64_t input) {
-    return encode48Signed(static_cast<int64_t>(input));
-}
+inline std::string encode48(uint64_t input) { return encode48Signed(static_cast<int64_t>(input)); }
 
 /**
  * Encodes a 16-byte input value into an up-to 22-byte output string.
@@ -201,4 +193,4 @@ inline std::pair<int64_t, int64_t> decode128Signed(const std::string &input) {
     return static_cast<std::pair<int64_t, int64_t>>(decode128(input));
 }
 
-#endif //LIBSAN_SAN_H
+#endif // LIBSAN_SAN_H

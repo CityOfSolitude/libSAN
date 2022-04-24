@@ -25,7 +25,8 @@ TEST(testEncode24, encodeLargerNaturals) {
     std::string encoded;
     constexpr int32_t bound = 64 * 63;
 
-    // we can encode 64 * 63 number with 2 (or 1) digit, since all starting with an all 1s block have already size 3
+    // we can encode 64 * 63 number with 2 (or 1) digit,
+    // since all starting with an all 1s block have already size 3
     for (auto i = 63; i < bound; ++i) {
         encoded = encode24(i);
         ASSERT_EQ(encoded.length(), 2);
@@ -69,7 +70,8 @@ TEST(testEncode24, encodeLargerNegatives) {
     std::string encoded;
     constexpr int32_t bound = -64 * 64 - 1;
 
-    // we can encode 64 * 63 number with 2 (or 1) digit, since all starting with an all 1s block have already size 3
+    // we can encode 64 * 63 number with 2 (or 1) digit,
+    // since all starting with an all 1s block have already size 3
     for (auto i = -65; i > bound; --i) {
         encoded = encode24(i);
         ASSERT_EQ(encoded.length(), 3);
@@ -85,7 +87,8 @@ TEST(testEncode24, encodeLargerNegatives) {
 }
 
 TEST(testEncode24, encodeProperties) {
-    // we count the encoding length of all possible 24 bit values, which are either 1, 2, 3 or 4 characters
+    // we count the encoding length of all possible 24 bit values,
+    // which are either 1, 2, 3 or 4 characters
     std::vector<size_t> counter(4, 0);
     for (int32_t input = 0; input < (1u << 24); ++input) {
         std::string encoded = encode24(input);
@@ -97,8 +100,8 @@ TEST(testEncode24, encodeProperties) {
         ++counter[length - 1];
     }
     // these are the amount of numbers we can encode in each length segment
-    ASSERT_EQ(counter[0], 64); // 0 to 62 and -1, 63 has a two byte encoding (we need to add a leading 0s block)
-    ASSERT_EQ(counter[1], (1 << 12) - (1 << 6)); // 2^12 - 2^6
+    ASSERT_EQ(counter[0], 64); // 0 to 62 and -1, 63 has a two byte encoding (leading 0s block)
+    ASSERT_EQ(counter[1], (1 << 12) - (1 << 6));  // 2^12 - 2^6
     ASSERT_EQ(counter[2], (1 << 18) - (1 << 12)); // 2^18 - 2^12
     ASSERT_EQ(counter[3], (1 << 24) - (1 << 18)); // 2^24 - 2^18
 }
