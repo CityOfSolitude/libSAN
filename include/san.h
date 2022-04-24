@@ -3,9 +3,9 @@
 
 #include <string>
 
-enum class ERROR {
-    OK, EMPTY, HIGH_BIT, WRONG_CHAR, TOO_LONG
-};
+namespace san {
+
+enum class ERROR { OK, EMPTY, HIGH_BIT, WRONG_CHAR, TOO_LONG };
 
 /**
  * Determines whether the string is a valid encoding, i.e., all characters
@@ -43,9 +43,7 @@ std::string encode24Signed(int32_t input);
  * @param input a 24 bit value, embedded within an unsigned 32 bit value
  * @return a non-empty encoding of the input value.
  */
-inline std::string encode24(uint32_t input) {
-    return encode24Signed(static_cast<int32_t>(input));
-}
+inline std::string encode24(uint32_t input) { return encode24Signed(static_cast<int32_t>(input)); }
 
 /**
  * Encodes a 4-byte input value into an up-to 6-byte output string.
@@ -70,9 +68,7 @@ std::string encode32Signed(int32_t input);
  * @param input a 32 bit value
  * @return a non-empty encoding of the input value.
  */
-inline std::string encode32(uint32_t input) {
-    return encode32Signed(static_cast<int32_t>(input));
-}
+inline std::string encode32(uint32_t input) { return encode32Signed(static_cast<int32_t>(input)); }
 
 /**
  * Encodes a 6-byte input value into an up-to 8-byte output string.
@@ -92,12 +88,36 @@ std::string encode48Signed(int64_t input);
 /**
  * Convenience method for unsigned values; the encoding does not change and
  * will still encode very high unsigned values sparse.
+ *
  * @param input a 24 bit value, embedded within an unsigned 32 bit value
  * @return a non-empty encoding of the input value.
  */
-inline std::string encode48(uint64_t input) {
-    return encode48Signed(static_cast<int64_t>(input));
-}
+inline std::string encode48(uint64_t input) { return encode48Signed(static_cast<int64_t>(input)); }
+
+/**
+ * Encodes a 8-byte input value into an up-to 11-byte output string.
+ *
+ * The output will be as short as possible, by omitting leading 0 blocks.
+ * Also we omit repeated, leading blocks of 1s, with the downside of having
+ * to explicitly mark some positive numbers with a leading 1s block with an
+ * additional 0s block.
+ *
+ * For 64-bit values, we are left with a 4-bit high block, that will only ever
+ * be encoded with the 16 different blocks (since we honor the sign!).
+ *
+ * @param input a 64 bit value
+ * @return a non-empty encoding of the input value.
+ */
+std::string encode64Signed(int64_t input);
+
+/**
+ * Convenience method for unsigned values; the encoding does not change and
+ * will still encode very high unsigned values sparse.
+ *
+ * @param input a 64 bit value
+ * @return a non-empty encoding of the input value.
+ */
+inline std::string encode64(uint64_t input) { return encode64Signed(static_cast<int64_t>(input)); }
 
 /**
  * Encodes a 16-byte input value into an up-to 22-byte output string.
@@ -115,6 +135,7 @@ std::string encode128Signed(int64_t ab, int64_t cd);
 /**
  * Convenience method for unsigned values; the encoding does not change and
  * will still encode very high unsigned values sparse.
+ *
  * @param input two 64 bit values
  * @return a non-empty encoding of the input value.
  */
@@ -152,8 +173,7 @@ inline int32_t decode24Signed(const std::string &input) {
 uint32_t decode32(const std::string &input);
 
 /**
- * Convenience method for signed values; the decoding does not differ from
- * the signed one.
+ * Convenience method for signed values; the decoding does not differ from the signed one.
  *
  * @param input a 1-6 byte string, which was the output of a previous encoding call
  * @return the decoded 32 bit value
@@ -184,6 +204,24 @@ inline int64_t decode48Signed(const std::string &input) {
 }
 
 /**
+ * Decodes a previously encoded 8-byte value from its string representation.
+ *
+ * @param input a 1-11 byte string, which was the output of a previous encoding call
+ * @return the decoded 64 bit value, interpreted as unsigned value
+ */
+uint64_t decode64(const std::string &input);
+
+/**
+ * Convenience method for signed values; the decoding does not differ from the signed one.
+ *
+ * @param input a 1-11 byte string, which was the output of a previous encoding call
+ * @return the decoded 64 bit value
+ */
+inline int64_t decode64Signed(const std::string &input) {
+    return static_cast<int64_t>(decode64(input));
+}
+
+/**
  * Decodes a previously encoded 16-byte value from its string representation.
  *
  * @param input a 1-22 byte string, which was the output of a previous encoding call
@@ -201,4 +239,6 @@ inline std::pair<int64_t, int64_t> decode128Signed(const std::string &input) {
     return static_cast<std::pair<int64_t, int64_t>>(decode128(input));
 }
 
-#endif //LIBSAN_SAN_H
+} // namespace san
+
+#endif // LIBSAN_SAN_H

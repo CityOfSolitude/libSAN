@@ -2,6 +2,8 @@
 #include <san.h>
 #include <tables.h>
 
+using namespace san;
+
 TEST(testValid, empty) {
     ASSERT_EQ(ERROR::EMPTY, valid(""));
     ASSERT_EQ(ERROR::EMPTY, valid("", 1));
@@ -17,17 +19,17 @@ TEST(testValid, highBitOrWrongChar) {
         for (int j = -128; j <= 127; ++j) {
             for (int k = -128; k <= 127; ++k) {
                 switch (valid({static_cast<char>(i), static_cast<char>(j), static_cast<char>(k)})) {
-                    case ERROR::HIGH_BIT:
-                        ++error_high;
-                        break;
-                    case ERROR::WRONG_CHAR:
-                        ++error_wrong;
-                        break;
-                    case ERROR::EMPTY:
-                        FAIL();
-                    default:
-                        ++success;
-                        break;
+                case ERROR::HIGH_BIT:
+                    ++error_high;
+                    break;
+                case ERROR::WRONG_CHAR:
+                    ++error_wrong;
+                    break;
+                case ERROR::EMPTY:
+                    FAIL();
+                default:
+                    ++success;
+                    break;
                 }
             }
         }
@@ -67,7 +69,7 @@ TEST(testValid, tooLongFirstByte) {
 TEST(testValid, firstByteCorrect) {
     for (auto bits = 1u; bits < 256; ++bits) {
         auto bytes = (bits - 1) / 6 + 1; // except first
-        auto rest = bits % 6; // that many in first
+        auto rest = bits % 6;            // that many in first
 
         for (size_t first = 0; first < 64; ++first) {
             std::string tooLong(bytes + 1, enc[first]);

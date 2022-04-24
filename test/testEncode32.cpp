@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include <san.h>
-#include <vector>
 #include <set>
+#include <vector>
+
+using namespace san;
 
 TEST(testEncode32, encodeSmallNaturals) {
     std::string encoded;
@@ -26,7 +28,8 @@ TEST(testEncode32, encodeLargerNaturals) {
     std::string encoded;
     constexpr int32_t bound = 64 * 63;
 
-    // we can encode 64 * 63 number with 2 (or 1) digit, since all starting with an all 1s block have already size 3
+    // we can encode 64 * 63 number with 2 (or 1) digit,
+    // since all starting with an all 1s block have already size 3
     for (auto i = 63; i < bound; ++i) {
         encoded = encode32(i);
         ASSERT_EQ(encoded.length(), 2);
@@ -63,7 +66,7 @@ TEST(testEncode32, encodeHighestTwoBits) {
         ++counter;
     }
     ASSERT_EQ((1u << 14) * 2, seen.size());
-    ASSERT_EQ((1u << 14) + 256, counter); // the remaining cases do not have this "problem" of being just 5 byte long
+    ASSERT_EQ((1u << 14) + 256, counter); // the remaining cases do not have this "problem"
     for (uint32_t i = 1u << 15; i < (1u << 15) + (1u << 14); ++i) {
         seen.insert(i);
         ASSERT_EQ('0', encode32(i << 16)[0]);
@@ -109,7 +112,8 @@ TEST(testEncode32, encodeLargerNegatives) {
     std::string encoded;
     constexpr int32_t bound = -64 * 64 - 1;
 
-    // we can encode 64 * 63 number with 2 (or 1) digit, since all starting with an all 1s block have already size 3
+    // we can encode 64 * 63 number with 2 (or 1) digit,
+    // since all starting with an all 1s block have already size 3
     for (auto i = -65; i > bound; --i) {
         encoded = encode32(i);
         ASSERT_EQ(encoded.length(), 3);
@@ -125,7 +129,8 @@ TEST(testEncode32, encodeLargerNegatives) {
 }
 
 TEST(testEncode32, encodeProperties) {
-    // we count the encoding length of all possible 24 bit values, which are either 1, 2, 3 or 4 characters
+    // we count the encoding length of all possible 24 bit values,
+    // which are either 1, 2, 3 or 4 characters
     std::vector<size_t> counter(5, 0);
     for (int32_t input = 0; input < (1u << 24); ++input) {
         std::string encoded = encode32(input);
@@ -137,35 +142,20 @@ TEST(testEncode32, encodeProperties) {
         ++counter[length - 1];
     }
     // these are the amount of numbers we can encode in each length segment
-    // in contrast to the 24 bit encoding, some numbers will slip into the 5 byte range
-    // sine we do not test the full range, we miss out on the short encodings of small negative numbers)
+    // in contrast to the 24 bit encoding, some numbers are in the 5 byte range,
+    // since we do not test the full range, we miss out on the short encodings
+    // of small negative numbers
     ASSERT_EQ(counter[0], 64 - 1); // 0 to 62, 63 has a two byte encoding, -1 is not tested
-    ASSERT_EQ(counter[1], (1 << 12) - (1 << 7) + 1); // 2^12 - 2^6 - 63 small negatives
-    ASSERT_EQ(counter[2], (1 << 18) - (1 << 13) + (1 << 6)); // 2^18 - 2^12 - 63 * 64 small negatives
-    ASSERT_EQ(counter[3], (1 << 24) - (1 << 19) + (1 << 12)); // 2^24 - 2^18 - 63 * 64 * 64 "small" negatives
-    ASSERT_EQ(counter[4], (1 << 18)); // the positive numbers that start with leading 1s, that overflew into 5 byte
+    ASSERT_EQ(counter[1], (1 << 12) - (1 << 7) + 1);          // 2^12 - 2^6 - 63 small negatives
+    ASSERT_EQ(counter[2], (1 << 18) - (1 << 13) + (1 << 6));  // 2^18 - 2^12 - 63*64 small negatives
+    ASSERT_EQ(counter[3], (1 << 24) - (1 << 19) + (1 << 12)); // 2^24 - 2^18 - 63*64*64 negatives
+    ASSERT_EQ(counter[4], (1 << 18)); // positive numbers with leading 1s, that overflew into 5 byte
 }
 
 const std::vector<uint32_t> basePatterns = { // NOLINT(cert-err58-cpp)
-        0x00000000,
-        0x11111111,
-        0x22222222,
-        0x33333333,
-        0x44444444,
-        0x55555555,
-        0x66666666,
-        0x77777777,
-        0x88888888,
-        0x99999999,
-        0xaaaaaaaa,
-        0xbbbbbbbb,
-        0xcccccccc,
-        0xdddddddd,
-        0xeeeeeeee,
-        0xffffffff,
-        0xdeadbeaf,
-        0xbeafdead
-};
+    0x00000000, 0x11111111, 0x22222222, 0x33333333, 0x44444444, 0x55555555,
+    0x66666666, 0x77777777, 0x88888888, 0x99999999, 0xaaaaaaaa, 0xbbbbbbbb,
+    0xcccccccc, 0xdddddddd, 0xeeeeeeee, 0xffffffff, 0xdeadbeaf, 0xbeafdead};
 
 std::set<uint32_t> createPatterns32() {
     std::set<uint32_t> seen;
@@ -177,7 +167,7 @@ std::set<uint32_t> createPatterns32() {
         // mask to set the MSB, and to wipe everything else by subtracting 1
         uint32_t msbMask = 1 << msb;
         // now use all the different patterns we defined
-        for (auto pattern: basePatterns) {
+        for (auto pattern : basePatterns) {
             // use all possible 6-bit blocks to also "move over" the pattern
             for (uint32_t block = 0; block <= 0x3f; ++block) {
                 // move the block from the LSBs over the pattern, until it vanished beyond the MSB
@@ -206,10 +196,12 @@ std::set<uint32_t> createPatterns32() {
     }
 
     if (seen.size() + duplicates != basePatterns.size() * 64 * (17 * 33) + 1) {
-        throw std::runtime_error("inconsistent test state, unexpected number of visited 32-bit patterns");
+        throw std::runtime_error(
+            "inconsistent test state, unexpected number of visited 32-bit patterns");
     }
     if (seen.size() * 3 < duplicates) {
-        throw std::runtime_error("inconsistent test state, unexpected low percentage of unique 32-bit patterns");
+        throw std::runtime_error(
+            "inconsistent test state, unexpected low percentage of unique 32-bit patterns");
     }
     return seen;
 }
@@ -218,7 +210,7 @@ const std::set<uint32_t> patterns = createPatterns32(); // NOLINT(cert-err58-cpp
 
 TEST(testEncode32, patternProperties) {
     std::vector<size_t> bucket(33, 0);
-    for (auto input: patterns) {
+    for (auto input : patterns) {
         uint8_t digits = 0;
         while (input) {
             ++digits;
@@ -226,11 +218,11 @@ TEST(testEncode32, patternProperties) {
         }
         ++bucket[digits];
     }
-    ASSERT_EQ(bucket[0], 1); // only 0
-    ASSERT_EQ(bucket[1], 1); // only 1
-    ASSERT_EQ(bucket[2], 2); // 10 and 11
-    ASSERT_EQ(bucket[3], 4); // 1xx
-    ASSERT_EQ(bucket[4], 8); // 1xxx
+    ASSERT_EQ(bucket[0], 1);  // only 0
+    ASSERT_EQ(bucket[1], 1);  // only 1
+    ASSERT_EQ(bucket[2], 2);  // 10 and 11
+    ASSERT_EQ(bucket[3], 4);  // 1xx
+    ASSERT_EQ(bucket[4], 8);  // 1xxx
     ASSERT_EQ(bucket[5], 16); // 1xxxx
     ASSERT_EQ(bucket[6], 32); // 1xxxxx
     ASSERT_EQ(bucket[7], 64); // 1xxxxxx (leading 0 and full 6-bit block explored)
@@ -257,14 +249,14 @@ TEST(testEncode32, patternImportant) {
 }
 
 TEST(testEncode32, encodeDecodeManyUnsigned) {
-    for (auto input: patterns) {
+    for (auto input : patterns) {
         std::string encoded = encode32(input);
         ASSERT_EQ(input, decode32(encoded)) << encoded;
     }
 }
 
 TEST(testEncode32, encodeDecodeAllSigned) {
-    for (auto uns: patterns) {
+    for (auto uns : patterns) {
         auto input = static_cast<int32_t>(uns);
         std::string encoded = encode32Signed(input);
         ASSERT_EQ(input, decode32Signed(encoded)) << encoded;

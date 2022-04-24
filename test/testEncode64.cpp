@@ -5,97 +5,97 @@
 
 using namespace san;
 
-TEST(testEncode128, encodeSmallNaturals) {
+TEST(testEncode64, encodeSmallNaturals) {
     std::string encoded;
     constexpr int64_t bound = 63;
 
     // we can encode 63 small numbers in one character, the 64th is reserved for -1
     for (auto i = 0l; i < bound; ++i) {
-        encoded = encode128(0, i);
+        encoded = encode64(i);
         ASSERT_EQ(encoded.length(), 1);
-        encoded = encode128Signed(0, i);
+        encoded = encode64Signed(i);
         ASSERT_EQ(encoded.length(), 1);
     }
 
     // verify the next number is encoded larger
-    encoded = encode128(0, bound);
+    encoded = encode64(bound);
     ASSERT_EQ(encoded.length(), 2);
-    encoded = encode128Signed(0, bound);
+    encoded = encode64Signed(bound);
     ASSERT_EQ(encoded.length(), 2);
 }
 
-TEST(testEncode128, encodeLargerNaturals) {
+TEST(testEncode64, encodeLargerNaturals) {
     std::string encoded;
     constexpr int64_t bound = 64 * 63;
 
     // we can encode 64 * 63 number with 2 (or 1) digit,
     // since all starting with an all 1s block have already size 3
     for (auto i = 63l; i < bound; ++i) {
-        encoded = encode128(0, i);
+        encoded = encode64(i);
         ASSERT_EQ(encoded.length(), 2);
-        encoded = encode128Signed(0, i);
+        encoded = encode64Signed(i);
         ASSERT_EQ(encoded.length(), 2);
     }
 
     // again check that the next number is encoded larger
-    encoded = encode128(0, bound);
+    encoded = encode64(bound);
     ASSERT_EQ(encoded.length(), 3);
-    encoded = encode128Signed(0, bound);
+    encoded = encode64Signed(bound);
     ASSERT_EQ(encoded.length(), 3);
 }
 
-TEST(testEncode128, encodeSmallNegatives) {
+TEST(testEncode64, encodeSmallNegatives) {
     std::string encoded;
     constexpr int64_t bound = -65;
 
     // the special -1, which just needs one character
-    encoded = encode128(-1, -1);
+    encoded = encode64(-1);
     ASSERT_EQ(encoded.length(), 1);
-    encoded = encode128Signed(-1, -1);
+    encoded = encode64Signed(-1);
     ASSERT_EQ(encoded.length(), 1);
 
     // we can encode the next 63 small negative numbers with two chars
     for (auto i = -2l; i > bound; --i) {
-        encoded = encode128(-1, i);
+        encoded = encode64(i);
         ASSERT_EQ(encoded.length(), 2);
-        encoded = encode128Signed(-1, i);
+        encoded = encode64Signed(i);
         ASSERT_EQ(encoded.length(), 2);
     }
 
     // verify that the next number encodes larger
-    encoded = encode128(-1, bound);
+    encoded = encode64(bound);
     ASSERT_EQ(encoded.length(), 3);
-    encoded = encode128Signed(-1, bound);
+    encoded = encode64Signed(bound);
     ASSERT_EQ(encoded.length(), 3);
 }
 
-TEST(testEncode128, encodeLargerNegatives) {
+TEST(testEncode64, encodeLargerNegatives) {
     std::string encoded;
     constexpr int64_t bound = -64 * 64 - 1;
 
     // we can encode 64 * 63 number with 2 (or 1) digit,
     // since all starting with an all 1s block have already size 3
     for (auto i = -65l; i > bound; --i) {
-        encoded = encode128(-1, i);
+        encoded = encode64(i);
         ASSERT_EQ(encoded.length(), 3);
-        encoded = encode128Signed(-1, i);
+        encoded = encode64Signed(i);
         ASSERT_EQ(encoded.length(), 3);
     }
 
     // again check that the next number is encoded larger
-    encoded = encode128(-1, bound);
+    encoded = encode64(bound);
     ASSERT_EQ(encoded.length(), 4);
-    encoded = encode128Signed(-1, bound);
+    encoded = encode64Signed(bound);
     ASSERT_EQ(encoded.length(), 4);
 }
 
-TEST(testEncode128, encodeProperties) {
+TEST(testEncode64, encodeProperties) {
     // we count the encoding length of all possible 24 bit values,
     // which are either 1, 2, 3 or 4 characters
     std::vector<size_t> counter(5, 0);
     for (int64_t input = 0; input < (1u << 24); ++input) {
-        std::string encoded = encode128(0, input);
-        ASSERT_EQ(ERROR::OK, valid(encoded, 128));
+        std::string encoded = encode64(input);
+        ASSERT_EQ(ERROR::OK, valid(encoded, 64));
         auto length = encoded.length();
         // empty is not allowed and neither is larger than 4
         ASSERT_GT(length, 0);
@@ -120,7 +120,7 @@ const std::vector<uint64_t> basePatterns = { // NOLINT(cert-err58-cpp)
     0xcccccccccccccccc, 0xdddddddddddddddd, 0xeeeeeeeeeeeeeeee, 0xffffffffffffffff,
     0xdeadbeafdeadbeaf, 0xbeafdeadbeafdead};
 
-std::set<std::pair<uint64_t, uint64_t>> createPatterns128() {
+std::set<uint64_t> createPatterns64() {
     std::set<uint64_t> seen;
     seen.insert(0);
     size_t duplicates = 0;
@@ -160,46 +160,25 @@ std::set<std::pair<uint64_t, uint64_t>> createPatterns128() {
 
     if (seen.size() + duplicates != basePatterns.size() * 16 * (33 * 65) + 1) {
         throw std::runtime_error(
-            "inconsistent test state, unexpected number of visited 128-bit patterns");
+            "inconsistent test state, unexpected number of visited 64-bit patterns");
     }
     if (seen.size() * 10 < duplicates) {
         throw std::runtime_error(
-            "inconsistent test state, unexpected low percentage of unique 128-bit patterns");
+            "inconsistent test state, unexpected low percentage of unique 64-bit patterns");
     }
 
-    std::set<std::pair<uint64_t, uint64_t>> result;
-    for (auto ab : seen) {
-        // use pattern high or low
-        result.insert({0, ab});
-        result.insert({ab, 0});
-        // use pattern high and low
-        result.insert({ab, ab});
-        // move the pattern "over the gap" a bit
-        for (auto i = 24u; i <= 40u; ++i) {
-            result.insert({(ab >> i) & (1ul < i) - 1, ab << i});
-        }
-    }
-    return result;
+    return seen;
 }
 
-const std::set<std::pair<uint64_t, uint64_t>> patterns =
-    createPatterns128(); // NOLINT(cert-err58-cpp)
+const std::set<uint64_t> patterns = createPatterns64(); // NOLINT(cert-err58-cpp)
 
-TEST(testEncode128, patternProperties) {
-    std::vector<size_t> bucket(129, 0);
+TEST(testEncode64, patternProperties) {
+    std::vector<size_t> bucket(65, 0);
     for (auto input : patterns) {
         uint8_t digits = 0;
-        if (input.first) {
-            while (input.first) {
-                ++digits;
-                input.first >>= 1;
-            }
-            digits += 64;
-        } else {
-            while (input.second) {
-                ++digits;
-                input.second >>= 1;
-            }
+        while (input) {
+            ++digits;
+            input >>= 1;
         }
         ++bucket[digits];
     }
@@ -217,37 +196,32 @@ TEST(testEncode128, patternProperties) {
     for (size_t i = 11u, p1 = bucket[10], p2 = bucket[9]; i < bucket.size(); ++i) {
         auto p0 = bucket[i];
         // we have more than previous or the one before (some spikes in the number of examples)
-        // TODO: we have only two patterns for 65 digits, hence the exception
-        EXPECT_TRUE(i != 65 || p0 >= 2);
-        // we have less patterns for 128 digits than before, but still enough, hence the exception
-        EXPECT_TRUE(i != 128 || p0 * 2 >= std::min(p1, p2));
-        EXPECT_TRUE(i == 65 || i == 128 || p0 > std::min(p1, p2))
-            << i << ": " << p0 << " " << p1 << " " << p2;
+        EXPECT_TRUE(p0 > std::min(p1, p2)) << i << ": " << p0 << " " << p1 << " " << p2;
         p2 = p1;
         p1 = bucket[i];
     }
 }
 
-TEST(testEncode128, patternImportant) {
-    ASSERT_TRUE(patterns.find({0, 0}) != patterns.end());
-    ASSERT_TRUE(patterns.find({-1ul, -1ul}) != patterns.end());
+TEST(testEncode64, patternImportant) {
+    ASSERT_TRUE(patterns.find(0) != patterns.end());
+    ASSERT_TRUE(patterns.find(-1ul) != patterns.end());
     for (auto i = 0u; i <= 64; ++i) {
-        ASSERT_TRUE(i == 64 || patterns.find({1ul << i, 1ul << i}) != patterns.end());
-        ASSERT_TRUE(patterns.find({(1ul << i) - 1, (1ul << i) - 1}) != patterns.end());
+        ASSERT_TRUE(patterns.find(1ul << i) != patterns.end());
+        ASSERT_TRUE(patterns.find((1ul << i) - 1) != patterns.end());
     }
 }
 
-TEST(testEncode128, encodeDecodeManyUnsigned) {
+TEST(testEncode64, encodeDecodeManyUnsigned) {
     for (auto input : patterns) {
-        std::string encoded = encode128(input.first, input.second);
-        ASSERT_EQ(input, decode128(encoded)) << encoded;
+        std::string encoded = encode64(input);
+        ASSERT_EQ(input, decode64(encoded)) << encoded;
     }
 }
 
-TEST(testEncode128, encodeDecodeAllSigned) {
+TEST(testEncode64, encodeDecodeAllSigned) {
     for (auto uns : patterns) {
-        auto input = static_cast<std::pair<int64_t, int64_t>>(uns);
-        std::string encoded = encode128Signed(input.first, input.second);
-        ASSERT_EQ(input, decode128Signed(encoded)) << encoded;
+        auto input = static_cast<int64_t>(uns);
+        std::string encoded = encode64Signed(input);
+        ASSERT_EQ(input, decode64Signed(encoded)) << encoded;
     }
 }
