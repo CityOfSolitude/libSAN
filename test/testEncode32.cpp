@@ -262,3 +262,10 @@ TEST(testEncode32, encodeDecodeAllSigned) {
         ASSERT_EQ(input, decode32Signed(encoded)) << encoded;
     }
 }
+
+TEST(testEncode32, allPatternsValid) {
+    for (auto input : patterns) {
+        ASSERT_EQ(ERROR::OK, valid(encode32(input), 32));
+        ASSERT_EQ(ERROR::OK, valid(encode32Signed(input), 32));
+    }
+}

@@ -27,8 +27,14 @@ ERROR valid(const string &input, size_t bitSize) {
             return ERROR::TOO_LONG;
         } else if (size == maxSize) {
             auto rest = bitSize % 6;
-            if (rest && dec[input.front()] & ~((1u << rest) - 1)) {
-                return ERROR::TOO_LONG;
+            if (rest) {
+                auto firstByte = dec[input.front()];
+                auto usedBits = (1 << rest) - 1;
+                // detect sign, then check consistency of unused bits
+                if (firstByte & 1 << (rest - 1) ? (firstByte | usedBits) != ONES
+                                                : firstByte & ~usedBits) {
+                    return ERROR::TOO_LONG;
+                }
             }
         }
     }
@@ -37,7 +43,7 @@ ERROR valid(const string &input, size_t bitSize) {
 }
 
 #define CASE(i)                                                                                    \
-    if (blocks[(i) + 1] != enc[63] ? blocks[i] != enc[0] : blocks[i] != enc[63]) {                 \
+    if (blocks[(i) + 1] != enc[ONES] ? blocks[i] != enc[0] : blocks[i] != enc[ONES]) {             \
         return {blocks.begin() + (i), blocks.end()};                                               \
     }
 

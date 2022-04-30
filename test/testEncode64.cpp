@@ -225,3 +225,10 @@ TEST(testEncode64, encodeDecodeAllSigned) {
         ASSERT_EQ(input, decode64Signed(encoded)) << encoded;
     }
 }
+
+TEST(testEncode64, allPatternsValid) {
+    for (auto input : patterns) {
+        ASSERT_EQ(ERROR::OK, valid(encode64(input), 64));
+        ASSERT_EQ(ERROR::OK, valid(encode64Signed(input), 64));
+    }
+}

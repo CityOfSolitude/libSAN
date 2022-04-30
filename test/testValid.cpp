@@ -48,35 +48,100 @@ TEST(testValid, correctWithoutSize) {
     }
 }
 
-TEST(testValid, tooLongFirstByte) {
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES]}, 1));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES]}, 2));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES]}, 3));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES]}, 4));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES]}, 5));
-    ASSERT_EQ(ERROR::OK, valid({enc[ONES]}, 6));
-    ASSERT_EQ(ERROR::OK, valid({enc[ONES]}, 7));
-
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES], enc[0]}, 7));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES], enc[0]}, 8));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES], enc[0]}, 9));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES], enc[0]}, 10));
-    ASSERT_EQ(ERROR::TOO_LONG, valid({enc[ONES], enc[0]}, 11));
-    ASSERT_EQ(ERROR::OK, valid({enc[ONES], enc[0]}, 12));
-    ASSERT_EQ(ERROR::OK, valid({enc[ONES], enc[0]}, 13));
+TEST(testValid, tooLongFirstByte6BitOk) {
+    for (uint8_t pattern = 0; pattern < 64; ++pattern) {
+        ASSERT_EQ(ERROR::OK, valid({enc[pattern]}, 6));
+        ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[ONES]}, 12));
+    }
 }
 
-TEST(testValid, firstByteCorrect) {
-    for (auto bits = 1u; bits < 256; ++bits) {
-        auto bytes = (bits - 1) / 6 + 1; // except first
-        auto rest = bits % 6;            // that many in first
+TEST(testValid, tooLongFirstByte5Bit) {
+    for (uint8_t pattern = 0; pattern < 64; ++pattern) {
+        bool sign = pattern & 0x10;
+        bool extra = pattern & 0x20;
+        if (sign == extra) {
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern]}, 5));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[ONES]}, 11));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[pattern]}, 11));
+        } else {
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern]}, 5));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[ONES]}, 11));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[pattern]}, 11));
+        }
+    }
+}
 
-        for (size_t first = 0; first < 64; ++first) {
-            std::string tooLong(bytes + 1, enc[first]);
-            ASSERT_EQ(ERROR::TOO_LONG, valid(tooLong, bits));
-            std::string unclear(bytes, enc[first]);
-            bool firstTooLarge = rest && first >= 1u << rest;
-            ASSERT_EQ(firstTooLarge ? ERROR::TOO_LONG : ERROR::OK, valid(unclear, bits));
+TEST(testValid, tooLongFirstByte4Bit) {
+    for (uint8_t pattern = 0; pattern < 64; ++pattern) {
+        bool sign = pattern & 0x08;
+        bool extra1 = pattern & 0x20;
+        bool extra2 = pattern & 0x10;
+        if (sign == extra1 && sign == extra2) {
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern]}, 4));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[ONES]}, 10));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[pattern]}, 10));
+        } else {
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern]}, 4));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[ONES]}, 10));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[pattern]}, 10));
+        }
+    }
+}
+
+TEST(testValid, tooLongFirstByte3Bit) {
+    for (uint8_t pattern = 0; pattern < 64; ++pattern) {
+        bool sign = pattern & 0x04;
+        bool extra1 = pattern & 0x20;
+        bool extra2 = pattern & 0x10;
+        bool extra3 = pattern & 0x08;
+        if (sign == extra1 && sign == extra2 && sign == extra3) {
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern]}, 3));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[ONES]}, 9));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[pattern]}, 9));
+        } else {
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern]}, 3));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[ONES]}, 9));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[pattern]}, 9));
+        }
+    }
+}
+
+TEST(testValid, tooLongFirstByte2Bit) {
+    for (uint8_t pattern = 0; pattern < 64; ++pattern) {
+        bool sign = pattern & 0x02;
+        bool extra1 = pattern & 0x20;
+        bool extra2 = pattern & 0x10;
+        bool extra3 = pattern & 0x08;
+        bool extra4 = pattern & 0x04;
+        if (sign == extra1 && sign == extra2 && sign == extra3 && sign == extra4) {
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern]}, 2));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[ONES]}, 8));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[pattern]}, 8));
+        } else {
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern]}, 2));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[ONES]}, 8));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[pattern]}, 8));
+        }
+    }
+}
+
+TEST(testValid, tooLongFirstByte1Bit) {
+    for (uint8_t pattern = 0; pattern < 64; ++pattern) {
+        bool sign = pattern & 0x01;
+        bool extra1 = pattern & 0x20;
+        bool extra2 = pattern & 0x10;
+        bool extra3 = pattern & 0x08;
+        bool extra4 = pattern & 0x04;
+        bool extra5 = pattern & 0x02;
+        if (sign == extra1 && sign == extra2 && sign == extra3 && sign == extra4 &&
+            sign == extra5) {
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern]}, 1));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[ONES]}, 7));
+            ASSERT_EQ(ERROR::OK, valid({enc[pattern], enc[pattern]}, 7));
+        } else {
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern]}, 1));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[ONES]}, 7));
+            ASSERT_EQ(ERROR::TOO_LONG, valid({enc[pattern], enc[pattern]}, 7));
         }
     }
 }

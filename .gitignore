@@ -36,3 +36,5 @@
 
 # Build System
 cmake-build-*
+target
+.bsp
