@@ -226,3 +226,14 @@ TEST(testEncode48, encodeDecodeAllSigned) {
         ASSERT_EQ(input, decode48Signed(encoded)) << encoded;
     }
 }
+
+TEST(testEncode48, allPatternsValid) {
+    for (auto input : patterns) {
+        ASSERT_EQ(ERROR::OK, valid(encode48(input), 48));
+        int64_t signedInput =
+            input & 0x00800000000000
+                ? static_cast<int64_t>(input) | static_cast<int64_t>(0xffff000000000000)
+                : static_cast<int64_t>(input);
+        ASSERT_EQ(ERROR::OK, valid(encode48Signed(signedInput), 48));
+    }
+}

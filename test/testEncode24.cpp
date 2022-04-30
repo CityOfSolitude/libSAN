@@ -121,3 +121,12 @@ TEST(testEncode24, encodeDecodeAllSigned) {
         ASSERT_EQ(input, decode24Signed(encoded)) << encoded;
     }
 }
+
+TEST(testEncode24, allPatternsValid) {
+    for (uint32_t input = 0; input < (1u << 24); ++input) {
+        ASSERT_EQ(ERROR::OK, valid(encode24(input), 24));
+    }
+    for (int32_t input = -(1 << 23); input < (1 << 23); ++input) {
+        ASSERT_EQ(ERROR::OK, valid(encode24Signed(input), 24));
+    }
+}

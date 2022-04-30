@@ -251,3 +251,11 @@ TEST(testEncode128, encodeDecodeAllSigned) {
         ASSERT_EQ(input, decode128Signed(encoded)) << encoded;
     }
 }
+
+TEST(testEncode128, allPatternsValid) {
+    for (auto uns : patterns) {
+        auto input = static_cast<std::pair<int64_t, int64_t>>(uns);
+        ASSERT_EQ(ERROR::OK, valid(encode128(input.first, input.second), 128));
+        ASSERT_EQ(ERROR::OK, valid(encode128Signed(input.first, input.second), 128));
+    }
+}
