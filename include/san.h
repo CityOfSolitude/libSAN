@@ -127,7 +127,8 @@ inline std::string encode64(uint64_t input) { return encode64Signed(static_cast<
  * to explicitly mark some positive numbers with a leading 1s block with an
  * additional 0s block.
  *
- * @param input two 64 bit values
+ * @param ab the first 64 bit value
+ * @param cd the first 64 bit value
  * @return a non-empty encoding of the input value.
  */
 std::string encode128Signed(int64_t ab, int64_t cd);
@@ -153,7 +154,7 @@ uint32_t decode24(const std::string &input);
 
 /**
  * Convenience method for signed values; the decoding does not differ from
- * the signed one, with the exception of the first 8 bits, which will repeat
+ * the unsigned one, with the exception of the first 8 bits, which will repeat
  * the sign of the 24 bit number.
  *
  * @param input a 1-4 byte string, which was the output of a previous encoding call
@@ -173,7 +174,7 @@ inline int32_t decode24Signed(const std::string &input) {
 uint32_t decode32(const std::string &input);
 
 /**
- * Convenience method for signed values; the decoding does not differ from the signed one.
+ * Convenience method for signed values; the decoding does not differ from the unsigned one.
  *
  * @param input a 1-6 byte string, which was the output of a previous encoding call
  * @return the decoded 32 bit value
@@ -191,12 +192,11 @@ inline int32_t decode32Signed(const std::string &input) {
 uint64_t decode48(const std::string &input);
 
 /**
- * Convenience method for signed values; the decoding does not differ from
- * the signed one, with the exception of the first 8 bits, which will repeat
- * the sign of the 48 bit number.
+ * Convenience method for signed values; the decoding does not differ from the unsigned one,
+ * with the exception of the first 8 bits, which will repeat the sign of the 48 bit number.
  *
  * @param input a 1-8 byte string, which was the output of a previous encoding call
- * @return the decoded 48 bit value, with the highest 8 bit replicating the sign
+ * @return the decoded 48 bit value, with the highest 16 bit replicating the sign
  */
 inline int64_t decode48Signed(const std::string &input) {
     auto res = static_cast<int64_t>(decode48(input));
@@ -212,7 +212,7 @@ inline int64_t decode48Signed(const std::string &input) {
 uint64_t decode64(const std::string &input);
 
 /**
- * Convenience method for signed values; the decoding does not differ from the signed one.
+ * Convenience method for signed values; the decoding does not differ from the unsigned one.
  *
  * @param input a 1-11 byte string, which was the output of a previous encoding call
  * @return the decoded 64 bit value
@@ -230,10 +230,10 @@ inline int64_t decode64Signed(const std::string &input) {
 std::pair<uint64_t, uint64_t> decode128(const std::string &input);
 
 /**
- * Convenience method for signed values; the decoding does not differ from the signed one.
+ * Convenience method for signed values; the decoding does not differ from the unsigned one.
  *
  * @param input a 1-22 byte string, which was the output of a previous encoding call
- * @return the decoded 128 bit value, with the highest 8 bit replicating the sign
+ * @return the decoded 128 bit value
  */
 inline std::pair<int64_t, int64_t> decode128Signed(const std::string &input) {
     return static_cast<std::pair<int64_t, int64_t>>(decode128(input));
