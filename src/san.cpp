@@ -140,7 +140,7 @@ string encode128Signed(int64_t ab, int64_t cd) {
 }
 
 uint32_t decode24(const string &input) {
-    int32_t res = input.front() == enc[ONES] ? -1u : 0;
+    auto res = input.front() == enc[ONES] ? -1u : 0;
     for (char byte : input) {
         res = (res << 6) + dec[byte];
     }
@@ -172,13 +172,13 @@ uint64_t decode64(const string &input) {
 }
 
 pair<uint64_t, uint64_t> decode128(const string &input) {
-    auto init = input.front() == enc[ONES] ? -1ul : 0;
-    pair<uint64_t, uint64_t> res{init, init};
+    uint64_t ab = input.front() == enc[ONES] ? -1ul : 0;
+    uint64_t cd = ab;
     for (char byte : input) {
-        res.first = (res.first << 6) + (res.second >> 58 & ONES);
-        res.second = (res.second << 6) + dec[byte];
+        ab = (ab << 6) + (cd >> 58 & ONES);
+        cd = (cd << 6) + dec[byte];
     }
-    return res;
+    return {ab, cd};
 }
 
 } // namespace san
