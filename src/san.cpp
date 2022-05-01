@@ -139,13 +139,7 @@ string encode128Signed(int64_t ab, int64_t cd) {
     return {blocks.back()};
 }
 
-uint32_t decode24(const string &input) {
-    auto res = input.front() == enc[ONES] ? -1u : 0;
-    for (char byte : input) {
-        res = (res << 6) + dec[byte];
-    }
-    return res & (1u << 24) - 1;
-}
+uint32_t decode24(const string &input) { return decode32(input) & (1u << 24) - 1; }
 
 uint32_t decode32(const string &input) {
     auto res = input.front() == enc[ONES] ? -1u : 0;
@@ -155,13 +149,7 @@ uint32_t decode32(const string &input) {
     return res;
 }
 
-uint64_t decode48(const string &input) {
-    auto res = input.front() == enc[ONES] ? -1ul : 0;
-    for (char byte : input) {
-        res = (res << 6) + dec[byte];
-    }
-    return res & (1ul << 48) - 1;
-}
+uint64_t decode48(const string &input) { return decode64(input) & (1ul << 48) - 1; }
 
 uint64_t decode64(const string &input) {
     auto res = input.front() == enc[ONES] ? -1ul : 0;
