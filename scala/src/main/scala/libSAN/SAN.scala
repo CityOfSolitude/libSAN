@@ -19,17 +19,29 @@ object SAN {
 
     private def enc(input: Long): Char = encTable((input & ONES).toInt)
 
-    sealed trait ValidationResult
+    sealed trait ValidationResult {
+        def assertOK(): Unit
+    }
 
-    case object OK extends ValidationResult
+    case object OK extends ValidationResult {
+        override def assertOK(): Unit = {}
+    }
 
-    case object EMPTY extends ValidationResult
+    case object EMPTY extends ValidationResult {
+        override def assertOK(): Unit = throw new AssertionError("EMPTY encoded string")
+    }
 
-    case object HIGH_BIT extends ValidationResult
+    case object HIGH_BIT extends ValidationResult {
+        override def assertOK(): Unit = throw new AssertionError("HIGH BIT set in encoded string")
+    }
 
-    case object WRONG_CHAR extends ValidationResult
+    case object WRONG_CHAR extends ValidationResult {
+        override def assertOK(): Unit = throw new AssertionError("WRONG CHAR in encoded string")
+    }
 
-    case object TOO_LONG extends ValidationResult
+    case object TOO_LONG extends ValidationResult {
+        override def assertOK(): Unit = throw new AssertionError("TOO LONG for bit size in encoded string")
+    }
 
     /**
      * Determines whether the string is a valid encoding, i.e., all characters
