@@ -223,7 +223,7 @@ object SAN {
      */
     def decode32(input: String): Int = {
         var res = if (input.head == encTable(ONES)) -1 else 0
-        for (byte <- input) res = (res << 6) + dec(byte);
+        for (byte <- input) res = (res << 6) + dec(byte)
         res
     }
 
@@ -256,7 +256,7 @@ object SAN {
      */
     def decode64(input: String): Long = {
         var res = if (input.head == encTable(ONES)) -1L else 0L
-        for (byte <- input) res = (res << 6) + dec(byte);
+        for (byte <- input) res = (res << 6) + dec(byte)
         res
     }
 
@@ -270,8 +270,8 @@ object SAN {
         var ab = if (input.head == encTable(ONES)) -1L else 0L
         var cd = ab
         for (byte <- input) {
-            ab = (ab << 6) + (cd >> 58 & ONES);
-            cd = (cd << 6) + dec(byte);
+            ab = (ab << 6) + (cd >> 58 & ONES)
+            cd = (cd << 6) + dec(byte)
         }
         (ab, cd)
     }
