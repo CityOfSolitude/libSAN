@@ -5,17 +5,16 @@ object SAN {
 
     val encTable: String = "+123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-"
     val dec: String = "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" +
-        "\u0000" + // +
+        0.toChar.toString + // +
         "@" +
-        "\u003f" + // -
+        0x3f.toChar.toString + // -
         "@@" +
-        "\u003e\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009" + // 0-9
+        0x3e.toChar.toString + // 0
+        String.copyValueOf((0x01 to 0x09).map(_.toChar).toArray) + // 1-9
         "@@@@@@@" +
-        "\u0024\u0025\u0026\u0027\u0028\u0029\u002a\u002b\u002c\u002d\u002e\u002f\u0030" + // A-M
-        "\u0031\u0032\u0033\u0034\u0035\u0036\u0037\u0038\u0039\u003a\u003b\u003c\u003d" + // N-Z
+        String.copyValueOf((0x24 to 0x3d).map(_.toChar).toArray) + // A-Z
         "@@@@@@" +
-        "\u000a\u000b\u000c\u000d\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016" + // a-m
-        "\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\u0020\u0021\u0022\u0023" + // n-z
+        String.copyValueOf((0x0a to 0x23).map(_.toChar).toArray) + // a-z
         "@@@@@"
 
     private def enc(input: Long): Char = encTable((input & ONES).toInt)
